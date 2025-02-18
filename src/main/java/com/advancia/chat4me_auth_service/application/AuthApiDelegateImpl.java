@@ -25,4 +25,5 @@ public class AuthApiDelegateImpl implements AuthApiDelegate {
 
         return ResponseEntity.ok(challengeResponseDto);
     }
+
 }
