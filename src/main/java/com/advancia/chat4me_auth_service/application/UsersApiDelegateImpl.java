@@ -20,7 +20,7 @@ public class UsersApiDelegateImpl implements UsersApiDelegate {
 
     @Override
     public ResponseEntity<List<UserDto>> getUsers() {
-        List<User> users = userService.getUsers("");
+        List<User> users = userService.getUsers();
         List<UserDto> usersDto = userMappers.convertFromDomain(users);
 
         //return ResponseEntity.ok(List.of(users));

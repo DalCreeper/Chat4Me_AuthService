@@ -39,14 +39,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: '#/components/schemas/LoginRequestDto'
       responses:
         '200':
           description: Login initiated, OTP sent, returns challenge ID
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ChallengeResponse'
+                $ref: '#/components/schemas/ChallengeResponseDto'
 
   /auth/verify-otp:
     post:
@@ -59,14 +59,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OTPVerificationRequest'
+              $ref: '#/components/schemas/OTPVerificationRequestDto'
       responses:
         '200':
           description: OTP verified, returns access token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthToken'
+                $ref: '#/components/schemas/AuthTokenDto'
 
   /auth/validate-token:
     post:
@@ -79,7 +79,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TokenValidationRequest'
+              $ref: '#/components/schemas/TokenValidationRequestDto'
       responses:
         '200':
           description: Token is valid
@@ -95,14 +95,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RefreshTokenRequest'
+              $ref: '#/components/schemas/RefreshTokenRequestDto'
       responses:
         '200':
           description: New access token issued
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthToken'
+                $ref: '#/components/schemas/AuthTokenDto'
   
   /users:
     get:
@@ -122,7 +122,7 @@ paths:
 
 components:
   schemas:
-    LoginRequest:
+    LoginRequestDto:
       type: object
       required:
         - username
@@ -133,7 +133,7 @@ components:
         password:
           type: string
 
-    ChallengeResponse:
+    ChallengeResponseDto:
       type: object
       properties:
         challenge_id:
@@ -144,7 +144,7 @@ components:
           type: string
           format: uuid
 
-    OTPVerificationRequest:
+    OTPVerificationRequestDto:
       type: object
       required:
         - challenge_id
@@ -158,9 +158,11 @@ components:
           type: string
           format: uuid
 
-    AuthToken:
+    AuthTokenDto:
       type: object
       properties:
+        token_id:
+          type: integer
         access_token:
           type: string
         expires_in:
@@ -169,7 +171,7 @@ components:
           type: string
           format: uuid
 
-    TokenValidationRequest:
+    TokenValidationRequestDto:
       type: object
       required:
         - access_token
@@ -180,13 +182,13 @@ components:
           type: string
           format: uuid
 
-    RefreshTokenRequest:
+    RefreshTokenRequestDto:
       type: object
       required:
         - refresh_token
       properties:
-        refresh_token:
-          type: string
+        refresh_token_id:
+          type: integer
         user_id:
           type: string
           format: uuid
@@ -203,7 +205,7 @@ components:
           type: string
         email:
           type: string
-        token:
+        tokenID:
           type: string
 
     UserList:

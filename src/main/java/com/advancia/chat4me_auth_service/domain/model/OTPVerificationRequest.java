@@ -11,14 +11,10 @@ import java.util.UUID;
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
-    private UUID id;
+public class OTPVerificationRequest {
+    private String challengeId;
 
-    private String name;
+    private String otp;
 
-    private String surname;
-
-    private String email;
-
-    private String tokenID;
+    private UUID userId;
 }

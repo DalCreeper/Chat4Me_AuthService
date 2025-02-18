@@ -11,14 +11,8 @@ import java.util.UUID;
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
-    private UUID id;
+public class RefreshTokenRequest {
+    private int refreshTokenId;
 
-    private String name;
-
-    private String surname;
-
-    private String email;
-
-    private String tokenID;
+    private UUID userId;
 }
