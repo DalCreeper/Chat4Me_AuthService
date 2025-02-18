@@ -1,0 +1,212 @@
+openapi: 3.0.3
+info:
+  title: Chat4Me - Authentication Service
+  version: 1.0.0
+  description: >
+    The **Chat4Me Authentication Service** manages user authentication, identity verification, 
+    and token-based access control.
+
+    It ensures secure access through Strong Customer Authentication (SCA) and enables users to obtain, validate, and refresh their access tokens.
+
+
+    **Key Features:**
+
+    - Initiate login with Strong Customer Authentication (SCA).
+
+    - Verify OTP to complete user authentication.
+
+    - Validate and refresh JWT-based access tokens.
+
+    - Secure token management for user sessions.
+
+servers:
+  - url: http://localhost:8080
+    description: Authentication service production server
+
+tags:
+  - name: auth
+    description: Endpoints for authentication, login, and token management.
+
+paths:
+  /auth/start-login:
+    post:
+      tags:
+        - auth
+      summary: Start SCA login process
+      operationId: startLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login initiated, OTP sent, returns challenge ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChallengeResponse'
+
+  /auth/verify-otp:
+    post:
+      tags:
+        - auth
+      summary: Verify OTP and complete login
+      operationId: verifyOTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OTPVerificationRequest'
+      responses:
+        '200':
+          description: OTP verified, returns access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+
+  /auth/validate-token:
+    post:
+      tags:
+        - auth
+      summary: Validate access token
+      operationId: validateToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenValidationRequest'
+      responses:
+        '200':
+          description: Token is valid
+
+  /auth/refresh:
+    post:
+      tags:
+        - auth
+      summary: Refresh expired access token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: New access token issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+  
+  /users:
+    get:
+      tags:
+        - users
+      summary: Get a list of available users
+      operationId: getUsers
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserList'
+
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    ChallengeResponse:
+      type: object
+      properties:
+        challenge_id:
+          type: string
+        message:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+
+    OTPVerificationRequest:
+      type: object
+      required:
+        - challenge_id
+        - otp
+      properties:
+        challenge_id:
+          type: string
+        otp:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+
+    AuthToken:
+      type: object
+      properties:
+        access_token:
+          type: string
+        expires_in:
+          type: integer
+        user_id:
+          type: string
+          format: uuid
+
+    TokenValidationRequest:
+      type: object
+      required:
+        - access_token
+      properties:
+        access_token:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+    
+    UserDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        surname:
+          type: string
+        email:
+          type: string
+        token:
+          type: string
+
+    UserList:
+      type: array
+      items:
+        $ref: '#/components/schemas/UserDto'
