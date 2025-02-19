@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @Builder(toBuilder = true)
 @AllArgsConstructor
@@ -15,4 +17,6 @@ public class AuthToken {
     private String accessToken;
 
     private int expiresIn;
+
+    private UUID userId;
 }

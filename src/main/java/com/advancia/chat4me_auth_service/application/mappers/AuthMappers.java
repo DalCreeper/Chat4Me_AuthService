@@ -15,16 +15,21 @@ public interface AuthMappers {
     @Mapping(source = "password", target = "password")
     LoginRequest convertToDomain(LoginRequestDto loginRequestDto);
 
+    @Mapping(source = "tokenId", target = "tokenId")
+    @Mapping(source = "accessToken", target = "accessToken")
+    @Mapping(source = "expiresIn", target = "expiresIn")
+    @Mapping(source = "userId", target = "userId")
+    AuthTokenDto convertFromDomain(AuthToken authToken);
     @Mapping(source = "challengeId", target = "challengeId")
     @Mapping(source = "otp", target = "otp")
     @Mapping(source = "userId", target = "userId")
-    OTPVerificationRequestDto convertFromDomain(OTPVerificationRequest otpVerificationRequest);
-
-    @Mapping(source = "refreshTokenId", target = "refreshTokenId")
-    @Mapping(source = "userId", target = "userId")
-    RefreshTokenRequestDto convertFromDomain(RefreshTokenRequest refreshTokenRequest);
+    OTPVerificationRequest convertToDomain(OTPVerificationRequestDto otpVerificationRequestDto);
 
     @Mapping(source = "accessToken", target = "accessToken")
     @Mapping(source = "userId", target = "userId")
-    TokenValidationRequestDto convertFromDomain(TokenValidationRequest tokenValidationRequest);
+    TokenValidationRequest convertToDomain(TokenValidationRequestDto tokenValidationRequestDto);
+
+    @Mapping(source = "refreshTokenId", target = "refreshTokenId")
+    @Mapping(source = "userId", target = "userId")
+    RefreshTokenRequest convertToDomain(RefreshTokenRequestDto refreshTokenRequestDto);
 }
