@@ -12,7 +12,7 @@ public interface UserMappers {
     @Mapping(source = "name", target = "name")
     @Mapping(source = "surname", target = "surname")
     @Mapping(source = "email", target = "email")
-    @Mapping(source = "tokenID", target = "tokenID")
+    @Mapping(source = "tokenId", target = "tokenId")
     UserDto convertFromDomain(User user);
     List<UserDto> convertFromDomain(List<User> users);
 }

@@ -12,7 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuthToken {
-    private int tokenId;
+    private UUID tokenId;
 
     private String accessToken;
 

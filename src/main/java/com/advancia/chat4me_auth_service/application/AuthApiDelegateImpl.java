@@ -5,8 +5,6 @@ import com.advancia.Chat4Me_Auth_Service.generated.application.model.*;
 import com.advancia.chat4me_auth_service.application.mappers.AuthMappers;
 import com.advancia.chat4me_auth_service.domain.model.AuthToken;
 import com.advancia.chat4me_auth_service.domain.model.ChallengeResponse;
-import com.advancia.chat4me_auth_service.domain.model.LoginRequest;
-import com.advancia.chat4me_auth_service.domain.model.TokenValidationRequest;
 import com.advancia.chat4me_auth_service.domain.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +13,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class AuthApiDelegateImpl implements AuthApiDelegate {
-
     private final AuthService authService;
     private final AuthMappers authMappers;
 
@@ -33,8 +30,11 @@ public class AuthApiDelegateImpl implements AuthApiDelegate {
     }
 
     public ResponseEntity<Void> validateToken(TokenValidationRequestDto tokenValidationRequestDto) {
-        authService.tokenValidation(authMappers.convertToDomain(tokenValidationRequestDto));
-        return ResponseEntity.ok().body(null);
+        if(authService.tokenValidation(authMappers.convertToDomain(tokenValidationRequestDto))) {
+            return ResponseEntity.ok().body(null);
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     public ResponseEntity<AuthTokenDto> refreshToken(RefreshTokenRequestDto refreshTokenRequestDto) {

@@ -138,6 +138,7 @@ components:
       properties:
         challenge_id:
           type: string
+          format: uuid
         message:
           type: string
         user_id:
@@ -152,6 +153,7 @@ components:
       properties:
         challenge_id:
           type: string
+          format: uuid
         otp:
           type: string
         user_id:
@@ -162,7 +164,8 @@ components:
       type: object
       properties:
         token_id:
-          type: integer
+          type: string
+          format: uuid
         access_token:
           type: string
         expires_in:
@@ -176,6 +179,9 @@ components:
       required:
         - access_token
       properties:
+        token_id:
+          type: string
+          format: uuid
         access_token:
           type: string
         user_id:
@@ -188,7 +194,8 @@ components:
         - refresh_token
       properties:
         refresh_token_id:
-          type: integer
+          type: string
+          format: uuid
         user_id:
           type: string
           format: uuid
@@ -203,10 +210,15 @@ components:
           type: string
         surname:
           type: string
+        username:
+          type: string
         email:
           type: string
-        tokenID:
+        password:
           type: string
+        token_id:
+          type: string
+          format: uuid
 
     UserList:
       type: array

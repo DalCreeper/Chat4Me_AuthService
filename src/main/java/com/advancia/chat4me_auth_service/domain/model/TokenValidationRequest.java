@@ -12,6 +12,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TokenValidationRequest {
+    private UUID tokenId;
+
     private String accessToken;
 
     private UUID userId;

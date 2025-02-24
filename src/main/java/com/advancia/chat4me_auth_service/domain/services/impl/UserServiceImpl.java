@@ -23,7 +23,7 @@ public class UserServiceImpl implements UserService {
                 .name("Name " + i)
                 .surname("Surname " + i)
                 .email("Email " + i)
-                .tokenID("Token " + i)
+                .tokenId("Token " + i)
                 .build();
             users.add(user);
         }

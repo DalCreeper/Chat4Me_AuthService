@@ -3,84 +3,95 @@ package com.advancia.chat4me_auth_service.domain.services.impl;
 import com.advancia.chat4me_auth_service.domain.model.*;
 import com.advancia.chat4me_auth_service.domain.repository.AuthRepoService;
 import com.advancia.chat4me_auth_service.domain.services.AuthService;
+import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    //private final AuthRepoService authRepoService;  // TODO : DA IMPLEMENTARE AL POSTO DEI DATI LOCALI
+    private final AuthRepoService authRepoService;
+    private static final String SECRET_KEY = "FeqVAAVPsmEUAlAXCNkNE3u1Sh4ksb2Jmc8QawzIDuE";
 
     @Override
     public ChallengeResponse login(LoginRequest loginRequest) {
-        LoginRequest localTempLoginRequest = LoginRequest.builder() // TODO : VARIABILE LOCALE
-            .username("Prova")
-            .password("Prova123!")
-            .build();
-
-        // TODO : QUA VERRA' INSERITO IL CONTROLLO DELLO USERNAME E PASSWORD, SE CORRISPONDONO SU DB VERRA' RESTITUITO LO UUID
-        String otp = "123456";
-        System.out.println("OTP: " + otp + "\nFor user: " + loginRequest.getUsername());
-
-        if(loginRequest.getUsername().equals(localTempLoginRequest.getUsername()) && loginRequest.getPassword().equals(localTempLoginRequest.getPassword())) {
+        Optional<User> optionalUser = authRepoService.findByUsernameAndPassword(loginRequest.getUsername(), loginRequest.getPassword());
+        if(optionalUser.isPresent()) {
+            String otp = generateOtp();
+            System.out.println("Generated OTP: " + otp + " for user: " + loginRequest.getUsername());
             return ChallengeResponse.builder()
-                .challengeId("0001")
+                .challengeId(UUID.randomUUID())
                 .message("Correct data")
-                .userId(UUID.fromString("3fa85f64-5717-4562-b3fc-2c963f66afa6"))
+                .userId(optionalUser.get().getId())
                 .build();
-        } else {
-            return ChallengeResponse.builder().build();
         }
+        return ChallengeResponse.builder().message("Invalid credentials").build();
     }
 
     @Override
     public AuthToken otpVerification(OTPVerificationRequest otpVerificationRequest) {
-        OTPVerificationRequest localTempOTPVerificationRequest = OTPVerificationRequest.builder() // TODO : VARIABILE LOCALE
-            .challengeId("0001")
-            .otp("123456")
-            .userId(UUID.fromString("3fa85f64-5717-4562-b3fc-2c963f66afa6"))
+        String jwt = generateJwt(otpVerificationRequest.getUserId());
+        return AuthToken.builder()
+            .tokenId(UUID.randomUUID())
+            .accessToken(jwt)
+            .expiresIn(3600)
+            .userId(otpVerificationRequest.getUserId())
             .build();
-
-        if(otpVerificationRequest.getOtp().equals(localTempOTPVerificationRequest.getOtp())){
-            return AuthToken.builder()
-                .tokenId(1)
-                .accessToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2V4YW1wbGUuYXV0aDAuY29tLyIsImF1ZCI6Imh0dHBzOi8vYXBpLmV4YW1wbGUuY29tL2NhbGFuZGFyL3YxLyIsInN1YiI6InVzcl8xMjMiLCJpYXQiOjE0NTg3ODU3OTYsImV4cCI6MTQ1ODg3MjE5Nn0.CA7eaHjIHz5NxeIJoFK9krqaeZrPLwmMmgI_XiQiIkQ")
-                .expiresIn(100000)
-                .userId(otpVerificationRequest.getUserId())
-                .build();
-        } else {
-            return AuthToken.builder().build();
-        }
     }
 
     @Override
-    public void tokenValidation(TokenValidationRequest tokenValidationRequest) {
-        TokenValidationRequest localTempTokenValidationRequest = TokenValidationRequest.builder()   // TODO : VARIABILE LOCALE
-            .accessToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2V4YW1wbGUuYXV0aDAuY29tLyIsImF1ZCI6Imh0dHBzOi8vYXBpLmV4YW1wbGUuY29tL2NhbGFuZGFyL3YxLyIsInN1YiI6InVzcl8xMjMiLCJpYXQiOjE0NTg3ODU3OTYsImV4cCI6MTQ1ODg3MjE5Nn0.CA7eaHjIHz5NxeIJoFK9krqaeZrPLwmMmgI_XiQiIkQ")
-            .userId(UUID.fromString("3fa85f64-5717-4562-b3fc-2c963f66afa6"))
-            .build();
-
-        if(tokenValidationRequest.getAccessToken().equals(localTempTokenValidationRequest.getAccessToken())){
-            System.out.println("Token is valid");
+    public boolean tokenValidation(TokenValidationRequest tokenValidationRequest) {
+        System.out.println("\nToken validation requested for: " + tokenValidationRequest.getAccessToken());
+        if(validateJwt(tokenValidationRequest.getAccessToken())) {
+            System.out.println("JWT validated" + "\n");
+            return true;
         } else {
-            System.out.println("Token is not valid");
+            System.out.println("JWT not validated" + "\n");
+            return false;
         }
     }
 
     @Override
     public AuthToken refreshToken(RefreshTokenRequest refreshTokenRequest) {
-        if(refreshTokenRequest.getRefreshTokenId() == 1) {  // TODO : CONTROLLO LOCALE SOLO PER VERIFICARE IL FUNZIONAMENTO
-            // TODO : QUA VERRA' INSERITA SU DB LA REFERENCE DELL'ID UTENTE CONGIUNTO AL NUOVO TOKENID
-            return AuthToken.builder()
-                .tokenId(2)
-                .accessToken("aaJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2V4YW1wbGUuYXV0aDAuY29tLyIsImF1ZCI6Imh0dHBzOi8vYXBpLmV4YW1wbGUuY29tL2NhbGFuZGFyL3YxLyIsInN1YiI6InVzcl8xMjMiLCJpYXQiOjE0NTg3ODU3OTYsImV4cCI6MTQ1ODg3MjE5Nn0.CA7eaHjIHz5NxeIJoFK9krqaeZrPLwmMmgI_XiQiIkQ")
-                .expiresIn(100000)
-                .userId(refreshTokenRequest.getUserId())
-                .build();
-        } else {
-            return AuthToken.builder().build();
+        String newJwt = generateJwt(refreshTokenRequest.getUserId());
+        return AuthToken.builder()
+            .tokenId(UUID.randomUUID())
+            .accessToken(newJwt)
+            .expiresIn(3600)
+            .userId(refreshTokenRequest.getUserId())
+            .build();
+    }
+
+    private String generateOtp() {
+        Random random = new Random();
+        int otp = 100000 + random.nextInt(900000);
+        return String.valueOf(otp);
+    }
+
+    private String generateJwt(UUID userId) {
+        return Jwts.builder()
+            .setSubject(userId.toString())
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + 3600000))
+            .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+            .compact();
+    }
+
+    private boolean validateJwt(String token) {
+        try {
+            Jws<Claims> claims = Jwts.parser()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token);
+            return true;
+        } catch(JwtException e) {
+            System.out.println(e);
+            return false;
         }
     }
 }

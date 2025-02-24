@@ -12,7 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OTPVerificationRequest {
-    private String challengeId;
+    private UUID challengeId;
 
     private String otp;
 

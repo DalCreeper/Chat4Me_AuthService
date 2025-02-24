@@ -1,15 +1,14 @@
 package com.advancia.chat4me_auth_service.domain.repository;
 
-import com.advancia.chat4me_auth_service.domain.model.LoginRequest;
-import com.advancia.chat4me_auth_service.domain.model.OTPVerificationRequest;
-import com.advancia.chat4me_auth_service.domain.model.RefreshTokenRequest;
-import com.advancia.chat4me_auth_service.domain.model.TokenValidationRequest;
+import com.advancia.chat4me_auth_service.domain.model.User;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public interface AuthRepoService {
-    LoginRequest loginRequest();
-    OTPVerificationRequest otpVerificationRequest();
-    TokenValidationRequest tokenValidationRequest();
-    RefreshTokenRequest refreshTokenRequest();
+    Optional<User> findByUsernameAndPassword(String username, String encryptedPassword);
+    Optional<User> findById(UUID id);
+    Optional<User> saveUser(User user);
 }

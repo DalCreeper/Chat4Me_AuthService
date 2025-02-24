@@ -25,6 +25,7 @@ public interface AuthMappers {
     @Mapping(source = "userId", target = "userId")
     OTPVerificationRequest convertToDomain(OTPVerificationRequestDto otpVerificationRequestDto);
 
+    @Mapping(source = "tokenId", target = "tokenId")
     @Mapping(source = "accessToken", target = "accessToken")
     @Mapping(source = "userId", target = "userId")
     TokenValidationRequest convertToDomain(TokenValidationRequestDto tokenValidationRequestDto);
