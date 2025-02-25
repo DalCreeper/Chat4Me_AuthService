@@ -6,7 +6,6 @@ import com.advancia.chat4me_auth_service.domain.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -16,17 +15,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getUsers() {
-        //List<User> users = usersRepoService.getUsers();   // TODO : ADATTARE POI CON LA PERSISTENZA
-        List<User> users = new ArrayList<>();
-        for(int i = 0; i < 5; i++) {
-            User user = User.builder()
-                .name("Name " + i)
-                .surname("Surname " + i)
-                .email("Email " + i)
-                .tokenId("Token " + i)
-                .build();
-            users.add(user);
-        }
-        return users;
+        return usersRepoService.getUsers();
     }
 }

@@ -14,7 +14,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UsersApiDelegateImpl implements UsersApiDelegate {
-
     private final UserService userService;
     private final UserMappers userMappers;
 
@@ -23,7 +22,6 @@ public class UsersApiDelegateImpl implements UsersApiDelegate {
         List<User> users = userService.getUsers();
         List<UserDto> usersDto = userMappers.convertFromDomain(users);
 
-        //return ResponseEntity.ok(List.of(users));
         return ResponseEntity.ok(usersDto);
     }
 }
