@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: Chat4Me - Auth Service
+  datasource:
+    url: jdbc:oracle:thin:@localhost:1521:orcl
+    username: Loris_Chat4Me
+    password: Password98
+    driver-class-name: oracle.jdbc.OracleDriver
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+app:
+  secret-key: FeqVAAVPsmEUAlAXCNkNE3u1Sh4ksb2Jmc8QawzIDuE
+  otp:
+    duration: 5m
+  jwt:
+    duration: 1d

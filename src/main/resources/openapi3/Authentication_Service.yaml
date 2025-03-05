@@ -158,6 +158,7 @@ components:
           type: string
         expiresAt:
           type: integer
+          format: int64
         user_id:
           type: string
           format: uuid
@@ -172,6 +173,7 @@ components:
           type: string
         expires_in:
           type: integer
+          format: int64
         message:
           type: string
         user_id:

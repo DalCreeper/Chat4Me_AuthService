@@ -2,28 +2,34 @@ package com.advancia.chat4me_auth_service.domain.services.impl;
 
 import com.advancia.chat4me_auth_service.domain.model.*;
 import com.advancia.chat4me_auth_service.domain.repository.AuthRepoService;
-import com.advancia.chat4me_auth_service.domain.repository.AuthTokenRepository;
-import com.advancia.chat4me_auth_service.domain.repository.OtpVerificationRepository;
 import com.advancia.chat4me_auth_service.domain.services.AuthService;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
 @Service
+@Log4j2
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    private static final Logger log = LogManager.getLogger(AuthServiceImpl.class);
     private final AuthRepoService authRepoService;
-    private final OtpVerificationRepository otpVerificationRepository;
-    private final AuthTokenRepository authTokenRepository;
-    private static final String SECRET_KEY = "FeqVAAVPsmEUAlAXCNkNE3u1Sh4ksb2Jmc8QawzIDuE";
+
+    @Value("${app.secret-key}")
+    private String secretKey;
+
+    @Value("${app.otp.duration}")
+    private Duration otpDuration;
+
+    @Value("${app.jwt.duration}")
+    private Duration jwtDuration;
 
     @Override
     public ChallengeResponse login(LoginRequest loginRequest) {
@@ -35,10 +41,10 @@ public class AuthServiceImpl implements AuthService {
                 .challengeId(UUID.randomUUID())
                 .otp(otp)
                 .userId(user.getId())
-                .expiresAt((int) (System.currentTimeMillis() / 1000) + 300)
+                .expiresAt(Instant.now().plusMillis(otpDuration.toMillis()).getEpochSecond())
                 .build();
-            otpVerificationRepository.save(otpVerification);
-            System.out.println("\nGenerated OTP: " + otp + " for user: " + loginRequest.getUsername() + "\n");
+            authRepoService.saveOTPVerificationRequest(otpVerification);
+            log.info("\nGenerated OTP: {} for user: {}\n", otp, loginRequest.getUsername());
             return ChallengeResponse.builder()
                 .challengeId(otpVerification.getChallengeId())
                 .message("Correct data - OTP sent")
@@ -50,7 +56,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthToken otpVerification(OTPVerificationRequest otpVerificationRequest) {
-        Optional<OTPVerificationRequest> otpRecord = otpVerificationRepository.findById(otpVerificationRequest.getChallengeId());
+        Optional<OTPVerificationRequest> otpRecord = authRepoService.findOTPById(otpVerificationRequest.getChallengeId());
         if(otpRecord.isPresent()) {
             OTPVerificationRequest otpVerification = otpRecord.get();
             int currentTimestamp = (int) (System.currentTimeMillis() / 1000);
@@ -63,41 +69,41 @@ public class AuthServiceImpl implements AuthService {
             String jwt = generateJwt(otpVerificationRequest.getUserId());
             AuthToken authToken = AuthToken.builder()
                 .tokenId(UUID.randomUUID())
-                .expiresIn(3600)
+                .expiresIn(jwtDuration.toMillis())
                 .message("Auth token generated")
                 .userId(otpVerificationRequest.getUserId())
                 .build();
-            authTokenRepository.save(authToken);
-            return authToken.toBuilder().accessToken(jwt).build();
+            authRepoService.saveAuthToken(authToken);
+            return AuthToken.builder().accessToken(jwt).build();
         }
         return AuthToken.builder().message("Challenge not found").build();
     }
 
     @Override
     public boolean tokenValidation(TokenValidationRequest tokenValidationRequest) {
-        System.out.println("\nToken validation requested for: " + tokenValidationRequest.getAccessToken());
+        log.info("\nToken validation requested for: {}", tokenValidationRequest.getAccessToken());
         if(validateJwt(tokenValidationRequest.getAccessToken())) {
-            System.out.println("JWT validated" + "\n");
+            log.info("JWT validated" + "\n");
             return true;
         } else {
-            System.out.println("JWT not validated" + "\n");
+            log.info("JWT not validated" + "\n");
             return false;
         }
     }
 
     @Override
     public AuthToken refreshToken(RefreshTokenRequest refreshTokenRequest) {
-        Optional<AuthToken> existingToken = authTokenRepository.findById(refreshTokenRequest.getRefreshTokenId());
+        Optional<AuthToken> existingToken = authRepoService.findAuthById(refreshTokenRequest.getRefreshTokenId());
         if(existingToken.isPresent()) {
             String newJwt = generateJwt(refreshTokenRequest.getUserId());
             AuthToken newAuthToken = AuthToken.builder()
                 .tokenId(UUID.randomUUID())
-                .expiresIn(3600)
+                .expiresIn(jwtDuration.toMillis())
                 .message("Auth token re-generated")
                 .userId(refreshTokenRequest.getUserId())
                 .build();
-            authTokenRepository.save(newAuthToken);
-            return newAuthToken.toBuilder().accessToken(newJwt).build();
+            authRepoService.saveAuthToken(newAuthToken);
+            return AuthToken.builder().accessToken(newJwt).build();
         }
         return AuthToken.builder().message("Refresh token not found").build();
     }
@@ -112,15 +118,15 @@ public class AuthServiceImpl implements AuthService {
         return Jwts.builder()
             .setSubject(userId.toString())
             .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + 3600000))
-            .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+            .setExpiration(new Date(System.currentTimeMillis() + jwtDuration.toMillis()))
+            .signWith(SignatureAlgorithm.HS256, secretKey)
             .compact();
     }
 
     private boolean validateJwt(String token) {
         try {
             Jws<Claims> claims = Jwts.parser()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token);
             return true;

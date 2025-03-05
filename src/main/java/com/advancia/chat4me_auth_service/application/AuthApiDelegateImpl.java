@@ -23,12 +23,14 @@ public class AuthApiDelegateImpl implements AuthApiDelegate {
         return ResponseEntity.ok(challengeResponseDto);
     }
 
+    @Override
     public ResponseEntity<AuthTokenDto> verifyOTP(OTPVerificationRequestDto otPVerificationRequestDto) {
         AuthToken authToken = authService.otpVerification(authMappers.convertToDomain(otPVerificationRequestDto));
         AuthTokenDto authTokenDto = authMappers.convertFromDomain(authToken);
         return ResponseEntity.ok(authTokenDto);
     }
 
+    @Override
     public ResponseEntity<Void> validateToken(TokenValidationRequestDto tokenValidationRequestDto) {
         if(authService.tokenValidation(authMappers.convertToDomain(tokenValidationRequestDto))) {
             return ResponseEntity.ok().body(null);
@@ -37,6 +39,7 @@ public class AuthApiDelegateImpl implements AuthApiDelegate {
         }
     }
 
+    @Override
     public ResponseEntity<AuthTokenDto> refreshToken(RefreshTokenRequestDto refreshTokenRequestDto) {
         AuthToken authToken = authService.refreshToken(authMappers.convertToDomain(refreshTokenRequestDto));
         AuthTokenDto newAuthTokenDto = authMappers.convertFromDomain(authToken);

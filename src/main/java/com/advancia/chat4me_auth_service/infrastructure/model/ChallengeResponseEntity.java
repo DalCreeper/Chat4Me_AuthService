@@ -1,4 +1,4 @@
-package com.advancia.chat4me_auth_service.domain.model;
+package com.advancia.chat4me_auth_service.infrastructure.model;
 
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -12,7 +12,7 @@ import java.util.UUID;
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChallengeResponse {
+public class ChallengeResponseEntity {
 
     @Id
     private UUID challengeId;
