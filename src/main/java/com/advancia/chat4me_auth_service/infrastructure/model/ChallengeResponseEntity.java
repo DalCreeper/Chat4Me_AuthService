@@ -1,6 +1,5 @@
 package com.advancia.chat4me_auth_service.infrastructure.model;
 
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,8 +12,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChallengeResponseEntity {
-
-    @Id
     private UUID challengeId;
     private String message;
     private UUID userId;

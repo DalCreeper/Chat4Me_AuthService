@@ -26,8 +26,4 @@ public interface AuthEntityMappers {
     @Mapping(source = "otp", target = "otp")
     @Mapping(source = "userId", target = "userId")
     OTPVerificationRequestEntity convertToInfrastructure(OTPVerificationRequest otpVerificationRequest);
-
-    @Mapping(source = "refreshTokenId", target = "refreshTokenId")
-    @Mapping(source = "userId", target = "userId")
-    RefreshTokenRequestEntity convertToInfrastructure(RefreshTokenRequest refreshTokenRequest);
 }

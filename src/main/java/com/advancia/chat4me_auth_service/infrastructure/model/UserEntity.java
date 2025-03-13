@@ -31,7 +31,7 @@ public class UserEntity {
     private String password;
 
     @Column(unique = true)
-    private String tokenId;
+    private UUID tokenId;
 
     public void setPassword(String rawPassword) {
         this.password = new BCryptPasswordEncoder().encode(rawPassword);

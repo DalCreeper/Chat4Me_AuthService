@@ -74,7 +74,8 @@ public class AuthServiceImpl implements AuthService {
                 .userId(otpVerificationRequest.getUserId())
                 .build();
             authRepoService.saveAuthToken(authToken);
-            return AuthToken.builder().accessToken(jwt).build();
+            authToken.setAccessToken(jwt);
+            return authToken;
         }
         return AuthToken.builder().message("Challenge not found").build();
     }
@@ -103,7 +104,8 @@ public class AuthServiceImpl implements AuthService {
                 .userId(refreshTokenRequest.getUserId())
                 .build();
             authRepoService.saveAuthToken(newAuthToken);
-            return AuthToken.builder().accessToken(newJwt).build();
+            newAuthToken.setAccessToken(newJwt);
+            return newAuthToken;
         }
         return AuthToken.builder().message("Refresh token not found").build();
     }
