@@ -3,6 +3,8 @@ package com.advancia.chat4me_auth_service.domain.services.impl;
 import com.advancia.chat4me_auth_service.domain.model.*;
 import com.advancia.chat4me_auth_service.domain.repository.AuthRepoService;
 import com.advancia.chat4me_auth_service.domain.services.AuthService;
+import com.advancia.chat4me_auth_service.domain.services.OTPProvider;
+import com.advancia.chat4me_auth_service.domain.services.UUIDProvider;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -13,7 +15,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
-import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -21,6 +22,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final AuthRepoService authRepoService;
+    private final OTPProvider otpProvider;
+    private final UUIDProvider uuidProvider;
 
     @Value("${app.secret-key}")
     private String secretKey;
@@ -36,9 +39,9 @@ public class AuthServiceImpl implements AuthService {
         Optional<User> optionalUser = authRepoService.findByUsernameAndPassword(loginRequest.getUsername(), loginRequest.getPassword());
         if(optionalUser.isPresent()) {
             User user = optionalUser.get();
-            String otp = generateOtp();
+            String otp = otpProvider.generateOtp();
             OTPVerificationRequest otpVerification = OTPVerificationRequest.builder()
-                .challengeId(UUID.randomUUID())
+                .challengeId(uuidProvider.generateUUID())
                 .otp(otp)
                 .userId(user.getId())
                 .expiresAt(Instant.now().plusMillis(otpDuration.toMillis()).getEpochSecond())
@@ -108,12 +111,6 @@ public class AuthServiceImpl implements AuthService {
             return newAuthToken;
         }
         return AuthToken.builder().message("Refresh token not found").build();
-    }
-
-    private String generateOtp() {
-        Random random = new Random();
-        int otp = 100000 + random.nextInt(900000);
-        return String.valueOf(otp);
     }
 
     private String generateJwt(UUID userId) {
