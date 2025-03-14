@@ -2,10 +2,7 @@ package com.advancia.chat4me_auth_service.domain.services.impl;
 
 import com.advancia.chat4me_auth_service.domain.model.*;
 import com.advancia.chat4me_auth_service.domain.repository.AuthRepoService;
-import com.advancia.chat4me_auth_service.domain.services.AuthService;
-import com.advancia.chat4me_auth_service.domain.services.OTPProvider;
-import com.advancia.chat4me_auth_service.domain.services.UUIDProvider;
-import io.jsonwebtoken.*;
+import com.advancia.chat4me_auth_service.domain.services.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,9 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @Log4j2
@@ -24,9 +19,8 @@ public class AuthServiceImpl implements AuthService {
     private final AuthRepoService authRepoService;
     private final OTPProvider otpProvider;
     private final UUIDProvider uuidProvider;
-
-    @Value("${app.secret-key}")
-    private String secretKey;
+    private final JWTProvider jwtProvider;
+    private final SystemDateTimeProvider systemDateTimeProvider;
 
     @Value("${app.otp.duration}")
     private Duration otpDuration;
@@ -62,16 +56,16 @@ public class AuthServiceImpl implements AuthService {
         Optional<OTPVerificationRequest> otpRecord = authRepoService.findOTPById(otpVerificationRequest.getChallengeId());
         if(otpRecord.isPresent()) {
             OTPVerificationRequest otpVerification = otpRecord.get();
-            int currentTimestamp = (int) (System.currentTimeMillis() / 1000);
+            int currentTimestamp = (int) systemDateTimeProvider.now().toEpochSecond();
             if(otpVerification.getExpiresAt() < currentTimestamp) {
                 return AuthToken.builder().message("OTP expired").build();
             }
             if(!otpVerification.getOtp().equals(otpVerificationRequest.getOtp())) {
                 return AuthToken.builder().message("Invalid OTP").build();
             }
-            String jwt = generateJwt(otpVerificationRequest.getUserId());
+            String jwt = jwtProvider.generateJwt(otpVerificationRequest.getUserId());
             AuthToken authToken = AuthToken.builder()
-                .tokenId(UUID.randomUUID())
+                .tokenId(uuidProvider.generateUUID())
                 .expiresIn(jwtDuration.toMillis())
                 .message("Auth token generated")
                 .userId(otpVerificationRequest.getUserId())
@@ -86,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public boolean tokenValidation(TokenValidationRequest tokenValidationRequest) {
         log.info("\nToken validation requested for: {}", tokenValidationRequest.getAccessToken());
-        if(validateJwt(tokenValidationRequest.getAccessToken())) {
+        if(jwtProvider.validateJwt(tokenValidationRequest.getAccessToken())) {
             log.info("JWT validated" + "\n");
             return true;
         } else {
@@ -99,9 +93,9 @@ public class AuthServiceImpl implements AuthService {
     public AuthToken refreshToken(RefreshTokenRequest refreshTokenRequest) {
         Optional<AuthToken> existingToken = authRepoService.findAuthById(refreshTokenRequest.getRefreshTokenId());
         if(existingToken.isPresent()) {
-            String newJwt = generateJwt(refreshTokenRequest.getUserId());
+            String newJwt = jwtProvider.generateJwt(refreshTokenRequest.getUserId());
             AuthToken newAuthToken = AuthToken.builder()
-                .tokenId(UUID.randomUUID())
+                .tokenId(uuidProvider.generateUUID())
                 .expiresIn(jwtDuration.toMillis())
                 .message("Auth token re-generated")
                 .userId(refreshTokenRequest.getUserId())
@@ -111,27 +105,5 @@ public class AuthServiceImpl implements AuthService {
             return newAuthToken;
         }
         return AuthToken.builder().message("Refresh token not found").build();
-    }
-
-    private String generateJwt(UUID userId) {
-        return Jwts.builder()
-            .setSubject(userId.toString())
-            .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + jwtDuration.toMillis()))
-            .signWith(SignatureAlgorithm.HS256, secretKey)
-            .compact();
-    }
-
-    private boolean validateJwt(String token) {
-        try {
-            Jws<Claims> claims = Jwts.parser()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token);
-            return true;
-        } catch(JwtException e) {
-            log.error("validateJwt Exception: ", e);
-            return false;
-        }
     }
 }
