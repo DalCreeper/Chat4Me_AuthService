@@ -1,7 +1,9 @@
 package com.advancia.chat4me_auth_service.domain.services.impl;
 
 import com.advancia.chat4me_auth_service.domain.services.JWTProvider;
+import com.advancia.chat4me_auth_service.domain.services.SystemDateTimeProvider;
 import io.jsonwebtoken.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -12,7 +14,9 @@ import java.util.UUID;
 
 @Log4j2
 @Component
+@RequiredArgsConstructor
 public class JWTProviderImpl implements JWTProvider {
+    private final SystemDateTimeProvider systemDateTimeProvider;
     @Value("${app.secret-key}")
     private String secretKey;
 
@@ -23,8 +27,8 @@ public class JWTProviderImpl implements JWTProvider {
     public String generateJwt(UUID userId) {
         return Jwts.builder()
             .setSubject(userId.toString())
-            .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + jwtDuration.toMillis()))
+            .setIssuedAt(Date.from(systemDateTimeProvider.now().toInstant()))
+            .setExpiration(Date.from(systemDateTimeProvider.now().plus(jwtDuration).toInstant()))
             .signWith(SignatureAlgorithm.HS256, secretKey)
             .compact();
     }
