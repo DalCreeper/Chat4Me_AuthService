@@ -29,8 +29,7 @@ public class AuthRepoServiceImpl implements AuthRepoService {
 
     @Override
     public Optional<User> findByUsernameAndPassword(String username, String encryptedPassword) {
-        Optional<UserEntity> userEntity = usersRepository.findByUsername(username)
-            .filter(user -> user.checkPassword(encryptedPassword));
+        Optional<UserEntity> userEntity = usersRepository.findByUsername(username).filter(user -> user.checkPassword(encryptedPassword));
         return userEntity.map(userEntityMappers::convertFromInfrastructure);
     }
 
@@ -50,8 +49,7 @@ public class AuthRepoServiceImpl implements AuthRepoService {
     @Override
     public void saveOTPVerificationRequest(OTPVerificationRequest otpVerificationRequest) {
         OTPVerificationRequestEntity otpVerificationRequestEntity = authEntityMappers.convertToInfrastructure(otpVerificationRequest);
-        OTPVerificationRequestEntity savedOTPVerificationRequestEntity = otpVerificationRepository.save(otpVerificationRequestEntity);
-        otpVerificationRepository.save(savedOTPVerificationRequestEntity);
+        otpVerificationRepository.save(otpVerificationRequestEntity);
     }
 
     @Override
@@ -63,8 +61,7 @@ public class AuthRepoServiceImpl implements AuthRepoService {
     @Override
     public void saveAuthToken(AuthToken authToken) {
         AuthTokenEntity authTokenEntity = authEntityMappers.convertToInfrastructure(authToken);
-        AuthTokenEntity savedAuthTokenEntity = authTokenRepository.save(authTokenEntity);
-        authTokenRepository.save(savedAuthTokenEntity);
+        authTokenRepository.save(authTokenEntity);
     }
 
     @Override
