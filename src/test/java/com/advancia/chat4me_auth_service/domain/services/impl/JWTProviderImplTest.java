@@ -39,7 +39,7 @@ class JWTProviderImplTest {
     }
 
     @Test
-    void shouldReturnJWT_whenAllOk() {
+    void shouldReturnJWT_whenIsAllOk() {
         OffsetDateTime fixedCurrentTimestamp = OffsetDateTime.parse("2025-03-12T12:00:00.174779800+01:00");
         doReturn(fixedCurrentTimestamp).when(systemDateTimeProvider).now();
         Date fixedDateIssuedAt = Date.from(fixedCurrentTimestamp.toInstant());

@@ -26,7 +26,7 @@ public class AuthApiDelegateImplTest {
     private AuthApiDelegateImpl authApiDelegateImpl;
 
     @Test
-    void shouldReturnChallengeResponseDtoAndPrintOTP_whenAllOk() {
+    void shouldReturnChallengeResponseDtoAndPrintOTP_whenIsAllOk() {
         LoginRequestDto loginRequestDto = new LoginRequestDto()
             .username("testUser")
             .password("testPassword");
@@ -84,7 +84,7 @@ public class AuthApiDelegateImplTest {
     }
 
     @Test
-    void shouldReturnAuthTokenDtoAndPrintToken_whenAllOk() {
+    void shouldReturnAuthTokenDtoAndPrintToken_whenIsAllOk() {
         OTPVerificationRequestDto otpVerificationRequestDto = new OTPVerificationRequestDto()
             .challengeId(UUID.randomUUID())
             .otp("123456")
@@ -148,7 +148,7 @@ public class AuthApiDelegateImplTest {
     }
 
     @Test
-    void shouldValidateAndReturnAnEmptyBody_whenAllOk() {
+    void shouldValidateAndReturnAnEmptyBody_whenIsAllOk() {
         TokenValidationRequestDto tokenValidationRequestDto = new TokenValidationRequestDto()
             .tokenId(UUID.randomUUID())
             .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik")
@@ -220,7 +220,7 @@ public class AuthApiDelegateImplTest {
     }
 
     @Test
-    void shouldReturnARefreshAuthTokenDtoAndPrintToken_whenAllOk() {
+    void shouldReturnARefreshAuthTokenDtoAndPrintToken_whenIsAllOk() {
         RefreshTokenRequestDto refreshTokenRequestDto = new RefreshTokenRequestDto()
             .refreshTokenId(UUID.randomUUID())
             .userId(UUID.randomUUID());

@@ -29,7 +29,7 @@ public class UsersApiDelegateImplTest {
     private UsersApiDelegateImpl usersApiDelegateImpl;
 
     @Test
-    void shouldReturnAvailableUserList_whenAllOk() {
+    void shouldReturnAvailableUserList_whenIsAllOk() {
         List<User> users = List.of(
             User.builder()
                 .id(UUID.randomUUID())

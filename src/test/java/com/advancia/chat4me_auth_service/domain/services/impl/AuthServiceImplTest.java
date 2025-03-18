@@ -46,7 +46,7 @@ public class AuthServiceImplTest {
     }
 
     @Test
-    void shouldReturnChallengeResponseAndPrintOTP_whenAllOk() {
+    void shouldReturnChallengeResponseAndPrintOTP_whenIsAllOk() {
         LoginRequest loginRequest = LoginRequest.builder()
             .username("testUser")
             .password("testPassword")
@@ -271,7 +271,7 @@ public class AuthServiceImplTest {
     }
 
     @Test
-    void shouldReturnTrue_whenAllOk() {
+    void shouldReturnTrue_whenIsAllOk() {
         TokenValidationRequest tokenValidationRequest = TokenValidationRequest.builder()
             .tokenId(UUID.randomUUID())
             .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDE4NjUxMDksImV4cCI6MTc0MTk1MTUwOX0.das6YB90HEXhxzSOh8ukhHXmCjwPBmzHUx4yjIvaWJI")
