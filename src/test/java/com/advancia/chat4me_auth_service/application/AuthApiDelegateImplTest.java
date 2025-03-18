@@ -224,7 +224,7 @@ public class AuthApiDelegateImplTest {
         AuthToken authToken = AuthToken.builder()
             .tokenId(UUID.randomUUID())
             .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik")
-            .expiresIn(86400000L)
+            .expiresIn(86400000L) // 1 day
             .message("Auth token generated")
             .userId(refreshTokenRequest.getUserId())
             .build();
