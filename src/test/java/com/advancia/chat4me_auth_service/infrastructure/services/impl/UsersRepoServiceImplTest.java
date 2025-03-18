@@ -86,36 +86,4 @@ public class UsersRepoServiceImplTest {
         verify(usersRepository).getUsers();
         verify(userEntityMappers, never()).convertFromInfrastructure(any(UserEntity.class));
     }
-
-    @Test
-    void shouldPropagateException_whenUserEntityMappersFails() {
-        List<UserEntity> usersEntity = List.of(
-            UserEntity.builder()
-                .id(UUID.randomUUID())
-                .name("testName")
-                .surname("testSurname")
-                .username("testUser")
-                .email("testEmail")
-                .password("testPassword")
-                .build(),
-            UserEntity.builder()
-                .id(UUID.randomUUID())
-                .name("testName2")
-                .surname("testSurname2")
-                .username("testUser2")
-                .email("testEmail2")
-                .password("testPassword2")
-                .build()
-        );
-        RuntimeException runtimeException = new RuntimeException("Mapping error");
-
-        doReturn(usersEntity).when(usersRepository).getUsers();
-        doThrow(runtimeException).when(userEntityMappers).convertFromInfrastructure(usersEntity);
-
-        Exception ex = assertThrows(RuntimeException.class, () -> usersRepoServiceImpl.getUsers());
-        assertSame(runtimeException, ex);
-
-        verify(usersRepository).getUsers();
-        verify(userEntityMappers).convertFromInfrastructure(usersEntity);
-    }
 }

@@ -2,6 +2,7 @@ package com.advancia.chat4me_auth_service.infrastructure.services.impl;
 
 import com.advancia.chat4me_auth_service.domain.model.*;
 import com.advancia.chat4me_auth_service.domain.repository.AuthRepoService;
+import com.advancia.chat4me_auth_service.domain.services.PasswordManager;
 import com.advancia.chat4me_auth_service.infrastructure.mappers.AuthEntityMappers;
 import com.advancia.chat4me_auth_service.infrastructure.mappers.UserEntityMappers;
 import com.advancia.chat4me_auth_service.infrastructure.model.AuthTokenEntity;
@@ -22,6 +23,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthRepoServiceImpl implements AuthRepoService {
     private final UsersRepository usersRepository;
+    private final PasswordManager passwordManager;
     private final OtpVerificationRepository otpVerificationRepository;
     private final AuthTokenRepository authTokenRepository;
     private final AuthEntityMappers authEntityMappers;
@@ -29,7 +31,7 @@ public class AuthRepoServiceImpl implements AuthRepoService {
 
     @Override
     public Optional<User> findByUsernameAndPassword(String username, String encryptedPassword) {
-        Optional<UserEntity> userEntity = usersRepository.findByUsername(username).filter(user -> user.checkPassword(encryptedPassword));
+        Optional<UserEntity> userEntity = usersRepository.findByUsername(username).filter(userE -> passwordManager.matches(encryptedPassword, userE.getPassword()));
         return userEntity.map(userEntityMappers::convertFromInfrastructure);
     }
 

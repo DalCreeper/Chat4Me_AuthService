@@ -32,12 +32,4 @@ public class UserEntity {
 
     @Column(unique = true)
     private UUID tokenId;
-
-    public void setPassword(String rawPassword) {
-        this.password = new BCryptPasswordEncoder().encode(rawPassword);
-    }
-
-    public boolean checkPassword(String rawPassword) {
-        return new BCryptPasswordEncoder().matches(rawPassword, this.password);
-    }
 }

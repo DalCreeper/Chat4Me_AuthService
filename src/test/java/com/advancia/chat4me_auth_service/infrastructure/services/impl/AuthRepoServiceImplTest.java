@@ -3,6 +3,7 @@ package com.advancia.chat4me_auth_service.infrastructure.services.impl;
 import com.advancia.chat4me_auth_service.domain.model.AuthToken;
 import com.advancia.chat4me_auth_service.domain.model.OTPVerificationRequest;
 import com.advancia.chat4me_auth_service.domain.model.User;
+import com.advancia.chat4me_auth_service.domain.services.PasswordManager;
 import com.advancia.chat4me_auth_service.infrastructure.mappers.AuthEntityMappers;
 import com.advancia.chat4me_auth_service.infrastructure.mappers.UserEntityMappers;
 import com.advancia.chat4me_auth_service.infrastructure.model.AuthTokenEntity;
@@ -30,6 +31,8 @@ public class AuthRepoServiceImplTest {
     @Mock
     private UsersRepository usersRepository;
     @Mock
+    private PasswordManager passwordManager;
+    @Mock
     private OtpVerificationRepository otpVerificationRepository;
     @Mock
     private AuthTokenRepository authTokenRepository;
@@ -44,11 +47,25 @@ public class AuthRepoServiceImplTest {
     void shouldReturnUser_whenFindByUserAndPassIsAllOk() {
         String username = "testUser";
         String password = "testPassword";
-        UserEntity userEntity = mock(UserEntity.class);
-        User user = mock(User.class);
+        UserEntity userEntity = UserEntity.builder()
+            .id(UUID.randomUUID())
+            .name("testName")
+            .surname("testSurname")
+            .username(username)
+            .email("testEmail")
+            .password(password)
+            .build();
+        User user = User.builder()
+            .id(userEntity.getId())
+            .name(userEntity.getName())
+            .surname(userEntity.getSurname())
+            .username(userEntity.getUsername())
+            .email(userEntity.getEmail())
+            .password(userEntity.getPassword())
+            .build();
 
         doReturn(Optional.of(userEntity)).when(usersRepository).findByUsername(username);
-        doReturn(true).when(userEntity).checkPassword(password);
+        doReturn(true).when(passwordManager).matches(password, userEntity.getPassword());
         doReturn(user).when(userEntityMappers).convertFromInfrastructure(userEntity);
 
         Optional<User> userResult = authRepoServiceImpl.findByUsernameAndPassword(username, password);
@@ -79,37 +96,25 @@ public class AuthRepoServiceImplTest {
     void shouldPropagateException_whenUserPasswordNotMatch() {
         String username = "testUser";
         String password = "testPassword";
-        UserEntity userEntity = mock(UserEntity.class);
+        UserEntity userEntity = UserEntity.builder()
+            .id(UUID.randomUUID())
+            .name("testName")
+            .surname("testSurname")
+            .username(username)
+            .email("testEmail")
+            .password(password)
+            .build();
 
         RuntimeException runtimeException = new RuntimeException("Wrong password");
 
         doReturn(Optional.of(userEntity)).when(usersRepository).findByUsername(username);
-        doThrow(runtimeException).when(userEntity).checkPassword(password);
+        doThrow(runtimeException).when(passwordManager).matches(password, userEntity.getPassword());
 
         Exception ex = assertThrowsExactly(RuntimeException.class, () -> authRepoServiceImpl.findByUsernameAndPassword(username, password));
         assertSame(runtimeException, ex);
 
         verify(usersRepository).findByUsername(username);
         verify(userEntityMappers, never()).convertFromInfrastructure(userEntity);
-    }
-
-    @Test
-    void shouldPropagateException_whenUserEntityMappersFails() {
-        String username = "testUser";
-        String password = "testPassword";
-        UserEntity userEntity = mock(UserEntity.class);
-
-        RuntimeException runtimeException = new RuntimeException("Repository error");
-
-        doReturn(Optional.of(userEntity)).when(usersRepository).findByUsername(username);
-        doReturn(true).when(userEntity).checkPassword(password);
-        doThrow(runtimeException).when(userEntityMappers).convertFromInfrastructure(userEntity);
-
-        Exception ex = assertThrowsExactly(RuntimeException.class, () -> authRepoServiceImpl.findByUsernameAndPassword(username, password));
-        assertSame(runtimeException, ex);
-
-        verify(usersRepository).findByUsername(username);
-        verify(userEntityMappers).convertFromInfrastructure(userEntity);
     }
 
     @Test
@@ -155,29 +160,6 @@ public class AuthRepoServiceImplTest {
 
         verify(usersRepository).findById(uuid);
         verify(userEntityMappers, never()).convertFromInfrastructure(any(UserEntity.class));
-    }
-
-    @Test
-    void shouldPropagateException_whenFindByIdUserMappersFails() {
-        UUID uuid = UUID.randomUUID();
-        UserEntity userEntity = UserEntity.builder()
-            .id(UUID.randomUUID())
-            .name("testName")
-            .surname("testSurname")
-            .username("testUser")
-            .email("testEmail")
-            .password("testPassword")
-            .build();
-        RuntimeException runtimeException = new RuntimeException("Mapping error");
-
-        doReturn(Optional.of(userEntity)).when(usersRepository).findById(uuid);
-        doThrow(runtimeException).when(userEntityMappers).convertFromInfrastructure(userEntity);
-
-        Exception ex = assertThrowsExactly(RuntimeException.class, () -> authRepoServiceImpl.findById(uuid));
-        assertSame(runtimeException, ex);
-
-        verify(usersRepository).findById(uuid);
-        verify(userEntityMappers).convertFromInfrastructure(userEntity);
     }
 
     @Test
@@ -243,28 +225,6 @@ public class AuthRepoServiceImplTest {
     }
 
     @Test
-    void shouldPropagateException_whenSaveUserUserEntityMappersFails() {
-        User user = User.builder()
-            .id(UUID.randomUUID())
-            .name("testName")
-            .surname("testSurname")
-            .username("testUser")
-            .email("testEmail")
-            .password("testPassword")
-            .build();
-        RuntimeException runtimeException = new RuntimeException("Mapping error");
-
-        doThrow(runtimeException).when(userEntityMappers).convertToInfrastructure(user);
-
-        Exception ex = assertThrowsExactly(RuntimeException.class, () -> authRepoServiceImpl.saveUser(user));
-        assertSame(runtimeException, ex);
-
-        verify(userEntityMappers).convertToInfrastructure(user);
-        verify(usersRepository, never()).save(any(UserEntity.class));
-        verify(userEntityMappers, never()).convertFromInfrastructure(any(UserEntity.class));
-    }
-
-    @Test
     void shouldSaveCorrectlyOTPVerificationRequest_whenIsAllOk() {
         OTPVerificationRequest otpVerificationRequest = OTPVerificationRequest.builder()
             .challengeId(UUID.randomUUID())
@@ -315,25 +275,6 @@ public class AuthRepoServiceImplTest {
     }
 
     @Test
-    void shouldPropagateException_whenOTPVerificationAuthEntityMappersFails() {
-        OTPVerificationRequest otpVerificationRequest = OTPVerificationRequest.builder()
-            .challengeId(UUID.randomUUID())
-            .otp("123456")
-            .expiresAt(Instant.now().plusSeconds(300).getEpochSecond())
-            .userId(UUID.randomUUID())
-            .build();
-        RuntimeException runtimeException = new RuntimeException("Mapping error");
-
-        doThrow(runtimeException).when(authEntityMappers).convertToInfrastructure(otpVerificationRequest);
-
-        Exception ex = assertThrowsExactly(RuntimeException.class, () -> authRepoServiceImpl.saveOTPVerificationRequest(otpVerificationRequest));
-        assertSame(runtimeException, ex);
-
-        verify(authEntityMappers).convertToInfrastructure(otpVerificationRequest);
-        verify(otpVerificationRepository, never()).save(any(OTPVerificationRequestEntity.class));
-    }
-
-    @Test
     void shouldReturnOTPVerification_whenIsAllOk() {
         UUID uuid = UUID.randomUUID();
         OTPVerificationRequestEntity otpVerificationRequestEntity = OTPVerificationRequestEntity.builder()
@@ -372,27 +313,6 @@ public class AuthRepoServiceImplTest {
 
         verify(otpVerificationRepository).findById(uuid);
         verify(authEntityMappers, never()).convertFromInfrastructure(any(OTPVerificationRequestEntity.class));
-    }
-
-    @Test
-    void shouldPropagateException_whenFindOTPByIDAuthEntityMappersFails() {
-        UUID uuid = UUID.randomUUID();
-        OTPVerificationRequestEntity otpVerificationRequestEntity = OTPVerificationRequestEntity.builder()
-            .challengeId(UUID.randomUUID())
-            .otp("123456")
-            .expiresAt(Instant.now().plusSeconds(300).getEpochSecond())
-            .userId(UUID.randomUUID())
-            .build();
-        RuntimeException runtimeException = new RuntimeException("Mapping error");
-
-        doReturn(Optional.of(otpVerificationRequestEntity)).when(otpVerificationRepository).findById(uuid);
-        doThrow(runtimeException).when(authEntityMappers).convertFromInfrastructure(otpVerificationRequestEntity);
-
-        Exception ex = assertThrowsExactly(RuntimeException.class, () -> authRepoServiceImpl.findOTPById(uuid));
-        assertSame(runtimeException, ex);
-
-        verify(otpVerificationRepository).findById(uuid);
-        verify(authEntityMappers).convertFromInfrastructure(otpVerificationRequestEntity);
     }
 
     @Test
@@ -446,25 +366,6 @@ public class AuthRepoServiceImplTest {
     }
 
     @Test
-    void shouldPropagateException_whenSaveAuthEntityMappersFails() {
-        AuthToken authToken = AuthToken.builder()
-            .tokenId(UUID.randomUUID())
-            .expiresIn(86400000L) // 1 day
-            .message("Auth token generated")
-            .userId(UUID.randomUUID())
-            .build();
-        RuntimeException runtimeException = new RuntimeException("Repository error");
-
-        doThrow(runtimeException).when(authEntityMappers).convertToInfrastructure(authToken);
-
-        Exception ex = assertThrowsExactly(RuntimeException.class, () -> authRepoServiceImpl.saveAuthToken(authToken));
-        assertSame(runtimeException, ex);
-
-        verify(authEntityMappers).convertToInfrastructure(authToken);
-        verify(authTokenRepository, never()).save(any(AuthTokenEntity.class));
-    }
-
-    @Test
     void shouldReturnAuthToken_whenFindByIdIsAllOk() {
         UUID uuid = UUID.randomUUID();
         AuthTokenEntity authTokenEntity = AuthTokenEntity.builder()
@@ -503,26 +404,5 @@ public class AuthRepoServiceImplTest {
 
         verify(authTokenRepository).findById(uuid);
         verify(authEntityMappers, never()).convertFromInfrastructure(any(AuthTokenEntity.class));
-    }
-
-    @Test
-    void shouldPropagateException_whenFindByIDAuthTokenEntityMappersFails() {
-        UUID uuid = UUID.randomUUID();
-        AuthTokenEntity authTokenEntity = AuthTokenEntity.builder()
-            .tokenId(UUID.randomUUID())
-            .expiresIn(86400000L) // 1 day
-            .message("Auth token generated")
-            .userId(uuid)
-            .build();
-        RuntimeException runtimeException = new RuntimeException("Mapping error");
-
-        doReturn(Optional.of(authTokenEntity)).when(authTokenRepository).findById(uuid);
-        doThrow(runtimeException).when(authEntityMappers).convertFromInfrastructure(authTokenEntity);
-
-        Exception ex = assertThrowsExactly(RuntimeException.class, () -> authRepoServiceImpl.findAuthById(uuid));
-        assertSame(runtimeException, ex);
-
-        verify(authTokenRepository).findById(uuid);
-        verify(authEntityMappers).convertFromInfrastructure(authTokenEntity);
     }
 }

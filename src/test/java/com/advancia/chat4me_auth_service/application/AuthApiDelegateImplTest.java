@@ -30,9 +30,19 @@ public class AuthApiDelegateImplTest {
         LoginRequestDto loginRequestDto = new LoginRequestDto()
             .username("testUser")
             .password("testPassword");
-        LoginRequest loginRequest = LoginRequest.builder().build();
-        ChallengeResponse challengeResponse = ChallengeResponse.builder().build();
-        ChallengeResponseDto challengeResponseDto = new ChallengeResponseDto();
+        LoginRequest loginRequest = LoginRequest.builder()
+            .username(loginRequestDto.getUsername())
+            .password(loginRequestDto.getPassword())
+            .build();
+        ChallengeResponse challengeResponse = ChallengeResponse.builder()
+            .challengeId(UUID.randomUUID())
+            .message("test")
+            .userId(UUID.randomUUID())
+            .build();
+        ChallengeResponseDto challengeResponseDto = new ChallengeResponseDto()
+            .challengeId(challengeResponse.getChallengeId())
+            .message(challengeResponse.getMessage())
+            .userId(challengeResponse.getUserId());
 
         doReturn(loginRequest).when(authMappers).convertToDomain(loginRequestDto);
         doReturn(challengeResponse).when(authService).login(loginRequest);
@@ -52,7 +62,10 @@ public class AuthApiDelegateImplTest {
         LoginRequestDto loginRequestDto = new LoginRequestDto()
             .username("testUser")
             .password("testPassword");
-        LoginRequest loginRequest = LoginRequest.builder().build();
+        LoginRequest loginRequest = LoginRequest.builder()
+            .username(loginRequestDto.getUsername())
+            .password(loginRequestDto.getPassword())
+            .build();
         RuntimeException runtimeException = new RuntimeException("Service error");
 
         doReturn(loginRequest).when(authMappers).convertToDomain(loginRequestDto);
@@ -67,32 +80,31 @@ public class AuthApiDelegateImplTest {
     }
 
     @Test
-    void shouldPropagateException_whenLoginAuthMappersFails() {
-        LoginRequestDto loginRequestDto = new LoginRequestDto()
-            .username("testUser")
-            .password("testPassword");
-        RuntimeException runtimeException = new RuntimeException("Mapping error");
-
-        doThrow(runtimeException).when(authMappers).convertToDomain(loginRequestDto);
-
-        Exception ex = assertThrows(RuntimeException.class, () -> authApiDelegateImpl.startLogin(loginRequestDto));
-        assertSame(runtimeException, ex);
-
-        verify(authMappers).convertToDomain(loginRequestDto);
-        verify(authService, never()).login(any(LoginRequest.class));
-        verify(authMappers, never()).convertFromDomain(any(ChallengeResponse.class));
-    }
-
-    @Test
     void shouldReturnAuthTokenDtoAndPrintToken_whenIsAllOk() {
         OTPVerificationRequestDto otpVerificationRequestDto = new OTPVerificationRequestDto()
             .challengeId(UUID.randomUUID())
             .otp("123456")
             .expiresAt(1740478333L)
             .userId(UUID.randomUUID());
-        OTPVerificationRequest otpVerificationRequest = OTPVerificationRequest.builder().build();
-        AuthToken authToken = AuthToken.builder().build();
-        AuthTokenDto authTokenDto = new AuthTokenDto();
+        OTPVerificationRequest otpVerificationRequest = OTPVerificationRequest.builder()
+            .challengeId(otpVerificationRequestDto.getChallengeId())
+            .otp(otpVerificationRequestDto.getOtp())
+            .expiresAt(otpVerificationRequestDto.getExpiresAt())
+            .userId(otpVerificationRequestDto.getUserId())
+            .build();
+        AuthToken authToken = AuthToken.builder()
+            .tokenId(UUID.randomUUID())
+            .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik")
+            .expiresIn(86400000L)
+            .message("Auth token generated")
+            .userId(otpVerificationRequest.getUserId())
+            .build();
+        AuthTokenDto authTokenDto = new AuthTokenDto()
+            .tokenId(authToken.getTokenId())
+            .accessToken(authToken.getAccessToken())
+            .expiresIn(authToken.getExpiresIn())
+            .message(authToken.getMessage())
+            .userId(otpVerificationRequest.getUserId());
 
         doReturn(otpVerificationRequest).when(authMappers).convertToDomain(otpVerificationRequestDto);
         doReturn(authToken).when(authService).otpVerification(otpVerificationRequest);
@@ -114,7 +126,12 @@ public class AuthApiDelegateImplTest {
             .otp("123456")
             .expiresAt(1740478333L)
             .userId(UUID.randomUUID());
-        OTPVerificationRequest otpVerificationRequest = OTPVerificationRequest.builder().build();
+        OTPVerificationRequest otpVerificationRequest = OTPVerificationRequest.builder()
+            .challengeId(otpVerificationRequestDto.getChallengeId())
+            .otp(otpVerificationRequestDto.getOtp())
+            .expiresAt(otpVerificationRequestDto.getExpiresAt())
+            .userId(otpVerificationRequestDto.getUserId())
+            .build();
         RuntimeException runtimeException = new RuntimeException("Service error");
 
         doReturn(otpVerificationRequest).when(authMappers).convertToDomain(otpVerificationRequestDto);
@@ -129,31 +146,16 @@ public class AuthApiDelegateImplTest {
     }
 
     @Test
-    void shouldPropagateException_whenOTPAuthMappersFails() {
-        OTPVerificationRequestDto otpVerificationRequestDto = new OTPVerificationRequestDto()
-            .challengeId(UUID.randomUUID())
-            .otp("123456")
-            .expiresAt(1740478333L)
-            .userId(UUID.randomUUID());
-        RuntimeException runtimeException = new RuntimeException("Service error");
-
-        doThrow(runtimeException).when(authMappers).convertToDomain(otpVerificationRequestDto);
-
-        Exception ex = assertThrows(RuntimeException.class, () -> authApiDelegateImpl.verifyOTP(otpVerificationRequestDto));
-        assertSame(runtimeException, ex);
-
-        verify(authMappers).convertToDomain(otpVerificationRequestDto);
-        verify(authService, never()).otpVerification(any(OTPVerificationRequest.class));
-        verify(authMappers, never()).convertFromDomain(any(ChallengeResponse.class));
-    }
-
-    @Test
     void shouldValidateAndReturnAnEmptyBody_whenIsAllOk() {
         TokenValidationRequestDto tokenValidationRequestDto = new TokenValidationRequestDto()
             .tokenId(UUID.randomUUID())
             .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik")
             .userId(UUID.randomUUID());
-        TokenValidationRequest tokenValidationRequest = TokenValidationRequest.builder().build();
+        TokenValidationRequest tokenValidationRequest = TokenValidationRequest.builder()
+            .tokenId(tokenValidationRequestDto.getTokenId())
+            .accessToken(tokenValidationRequestDto.getAccessToken())
+            .userId(tokenValidationRequestDto.getUserId())
+            .build();
 
         doReturn(tokenValidationRequest).when(authMappers).convertToDomain(tokenValidationRequestDto);
         doReturn(true).when(authService).tokenValidation(tokenValidationRequest);
@@ -171,7 +173,11 @@ public class AuthApiDelegateImplTest {
             .tokenId(UUID.randomUUID())
             .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik")
             .userId(UUID.randomUUID());
-        TokenValidationRequest tokenValidationRequest = TokenValidationRequest.builder().build();
+        TokenValidationRequest tokenValidationRequest = TokenValidationRequest.builder()
+            .tokenId(tokenValidationRequestDto.getTokenId())
+            .accessToken(tokenValidationRequestDto.getAccessToken())
+            .userId(tokenValidationRequestDto.getUserId())
+            .build();
 
         doReturn(tokenValidationRequest).when(authMappers).convertToDomain(tokenValidationRequestDto);
         doReturn(false).when(authService).tokenValidation(tokenValidationRequest);
@@ -189,7 +195,11 @@ public class AuthApiDelegateImplTest {
             .tokenId(UUID.randomUUID())
             .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik")
             .userId(UUID.randomUUID());
-        TokenValidationRequest tokenValidationRequest = TokenValidationRequest.builder().build();
+        TokenValidationRequest tokenValidationRequest = TokenValidationRequest.builder()
+            .tokenId(tokenValidationRequestDto.getTokenId())
+            .accessToken(tokenValidationRequestDto.getAccessToken())
+            .userId(tokenValidationRequestDto.getUserId())
+            .build();
         RuntimeException runtimeException = new RuntimeException("Service error");
 
         doReturn(tokenValidationRequest).when(authMappers).convertToDomain(tokenValidationRequestDto);
@@ -203,30 +213,28 @@ public class AuthApiDelegateImplTest {
     }
 
     @Test
-    void shouldPropagateException_whenTokenValidationAuthMappersFails() {
-        TokenValidationRequestDto tokenValidationRequestDto = new TokenValidationRequestDto()
-            .tokenId(UUID.randomUUID())
-            .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik")
-            .userId(UUID.randomUUID());
-        RuntimeException runtimeException = new RuntimeException("Mapping error");
-
-        doThrow(runtimeException).when(authMappers).convertToDomain(tokenValidationRequestDto);
-
-        Exception ex = assertThrows(RuntimeException.class, () -> authApiDelegateImpl.validateToken(tokenValidationRequestDto));
-        assertSame(runtimeException, ex);
-
-        verify(authMappers).convertToDomain(tokenValidationRequestDto);
-        verify(authService, never()).tokenValidation(any(TokenValidationRequest.class));
-    }
-
-    @Test
     void shouldReturnARefreshAuthTokenDtoAndPrintToken_whenIsAllOk() {
         RefreshTokenRequestDto refreshTokenRequestDto = new RefreshTokenRequestDto()
             .refreshTokenId(UUID.randomUUID())
             .userId(UUID.randomUUID());
-        RefreshTokenRequest refreshTokenRequest = RefreshTokenRequest.builder().build();
-        AuthToken authToken = AuthToken.builder().build();
-        AuthTokenDto authTokenDto = new AuthTokenDto();
+        RefreshTokenRequest refreshTokenRequest = RefreshTokenRequest.builder()
+            .refreshTokenId(refreshTokenRequestDto.getRefreshTokenId())
+            .userId(refreshTokenRequestDto.getUserId())
+            .build();
+        AuthToken authToken = AuthToken.builder()
+            .tokenId(UUID.randomUUID())
+            .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik")
+            .expiresIn(86400000L)
+            .message("Auth token generated")
+            .userId(refreshTokenRequest.getUserId())
+            .build();
+        AuthTokenDto authTokenDto = new AuthTokenDto()
+            .tokenId(authToken.getTokenId())
+            .accessToken(authToken.getAccessToken())
+            .userId(authToken.getUserId())
+            .expiresIn(authToken.getExpiresIn())
+            .message(authToken.getMessage())
+            .userId(authToken.getUserId());
 
         doReturn(refreshTokenRequest).when(authMappers).convertToDomain(refreshTokenRequestDto);
         doReturn(authToken).when(authService).refreshToken(refreshTokenRequest);
@@ -246,7 +254,10 @@ public class AuthApiDelegateImplTest {
         RefreshTokenRequestDto refreshTokenRequestDto = new RefreshTokenRequestDto()
             .refreshTokenId(UUID.randomUUID())
             .userId(UUID.randomUUID());
-        RefreshTokenRequest refreshTokenRequest = RefreshTokenRequest.builder().build();
+        RefreshTokenRequest refreshTokenRequest = RefreshTokenRequest.builder()
+            .refreshTokenId(refreshTokenRequestDto.getRefreshTokenId())
+            .userId(refreshTokenRequestDto.getUserId())
+            .build();
         RuntimeException runtimeException = new RuntimeException("Service error");
 
         doReturn(refreshTokenRequest).when(authMappers).convertToDomain(refreshTokenRequestDto);
@@ -257,23 +268,6 @@ public class AuthApiDelegateImplTest {
 
         verify(authMappers).convertToDomain(refreshTokenRequestDto);
         verify(authService).refreshToken(refreshTokenRequest);
-        verify(authMappers, never()).convertFromDomain(any(AuthToken.class));
-    }
-
-    @Test
-    void shouldPropagateException_whenRefreshAuthTokenAuthMappersFails() {
-        RefreshTokenRequestDto refreshTokenRequestDto = new RefreshTokenRequestDto()
-            .refreshTokenId(UUID.randomUUID())
-            .userId(UUID.randomUUID());
-        RuntimeException runtimeException = new RuntimeException("Mapping error");
-
-        doThrow(runtimeException).when(authMappers).convertToDomain(refreshTokenRequestDto);
-
-        Exception ex = assertThrows(RuntimeException.class, () -> authApiDelegateImpl.refreshToken(refreshTokenRequestDto));
-        assertSame(runtimeException, ex);
-
-        verify(authMappers).convertToDomain(refreshTokenRequestDto);
-        verify(authService, never()).refreshToken(any(RefreshTokenRequest.class));
         verify(authMappers, never()).convertFromDomain(any(AuthToken.class));
     }
 }

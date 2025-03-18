@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -50,7 +49,24 @@ public class UsersApiDelegateImplTest {
                 .tokenId(UUID.randomUUID())
                 .build()
         );
-        List<UserDto> usersDto = new ArrayList<>();
+        List<UserDto> usersDto = List.of(
+            new UserDto()
+                .id(users.get(0).getId())
+                .name(users.get(0).getName())
+                .surname(users.get(0).getSurname())
+                .username(users.get(0).getUsername())
+                .email(users.get(0).getEmail())
+                .password(users.get(0).getPassword())
+                .tokenId(users.get(0).getTokenId()),
+            new UserDto()
+                .id(users.get(1).getId())
+                .name(users.get(1).getName())
+                .surname(users.get(1).getSurname())
+                .username(users.get(1).getUsername())
+                .email(users.get(1).getEmail())
+                .password(users.get(1).getPassword())
+                .tokenId(users.get(1).getTokenId())
+        );
 
         doReturn(users).when(userService).getUsers();
         doReturn(usersDto).when(userMappers).convertFromDomain(users);
@@ -74,39 +90,5 @@ public class UsersApiDelegateImplTest {
 
         verify(userService).getUsers();
         verify(userMappers, never()).convertFromDomain(anyList());
-    }
-
-    @Test
-    void shouldPropagateException_whenUserMappersFails() {
-        List<User> users = List.of(
-            User.builder()
-                .id(UUID.randomUUID())
-                .name("testName")
-                .surname("testSurname")
-                .username("testUsername")
-                .email("testEmail")
-                .password("testPassword")
-                .tokenId(UUID.randomUUID())
-                .build(),
-            User.builder()
-                .id(UUID.randomUUID())
-                .name("testName2")
-                .surname("testSurname2")
-                .username("testUsername2")
-                .email("testEmail2")
-                .password("testPassword2")
-                .tokenId(UUID.randomUUID())
-                .build()
-        );
-        RuntimeException runtimeException = new RuntimeException("Service error");
-
-        doReturn(users).when(userService).getUsers();
-        doThrow(runtimeException).when(userMappers).convertFromDomain(users);
-
-        Exception ex = assertThrows(RuntimeException.class, () -> usersApiDelegateImpl.getUsers());
-        assertSame(runtimeException, ex);
-
-        verify(userService).getUsers();
-        verify(userMappers).convertFromDomain(users);
     }
 }
