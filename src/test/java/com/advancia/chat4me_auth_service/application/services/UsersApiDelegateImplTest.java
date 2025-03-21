@@ -2,6 +2,7 @@ package com.advancia.chat4me_auth_service.application.services;
 
 import com.advancia.Chat4Me_Auth_Service.generated.application.model.UserDto;
 import com.advancia.chat4me_auth_service.application.mappers.UserMappers;
+import com.advancia.chat4me_auth_service.application.services.impl.UsersApiDelegateImpl;
 import com.advancia.chat4me_auth_service.domain.model.User;
 import com.advancia.chat4me_auth_service.domain.services.UserService;
 import org.junit.jupiter.api.Test;

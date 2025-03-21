@@ -1,4 +1,4 @@
-package com.advancia.chat4me_auth_service.application.services;
+package com.advancia.chat4me_auth_service.application.services.impl;
 
 import com.advancia.Chat4Me_Auth_Service.generated.application.api.AuthApiDelegate;
 import com.advancia.Chat4Me_Auth_Service.generated.application.model.*;
