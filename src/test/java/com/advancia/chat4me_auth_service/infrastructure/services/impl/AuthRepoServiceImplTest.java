@@ -68,9 +68,8 @@ public class AuthRepoServiceImplTest {
         doReturn(true).when(passwordManager).matches(password, userEntity.getPassword());
         doReturn(user).when(userEntityMappers).convertFromInfrastructure(userEntity);
 
-        Optional<User> userResult = authRepoServiceImpl.findByUsernameAndPassword(username, password);
-        assertTrue(userResult.isPresent());
-        assertEquals(Optional.of(user), userResult);
+        User userResult = authRepoServiceImpl.findByUsernameAndPassword(username, password);
+        assertEquals(user, userResult);
 
         verify(usersRepository).findByUsername(username);
         verify(userEntityMappers).convertFromInfrastructure(userEntity);
@@ -115,51 +114,6 @@ public class AuthRepoServiceImplTest {
 
         verify(usersRepository).findByUsername(username);
         verify(userEntityMappers, never()).convertFromInfrastructure(userEntity);
-    }
-
-    @Test
-    void shouldReturnUser_whenFindByIdIsAllOk() {
-        UUID uuid = UUID.randomUUID();
-        UserEntity userEntity = UserEntity.builder()
-            .id(UUID.randomUUID())
-            .name("testName")
-            .surname("testSurname")
-            .username("testUser")
-            .email("testEmail")
-            .password("testPassword")
-            .build();
-        User user = User.builder()
-            .id(userEntity.getId())
-            .name(userEntity.getName())
-            .surname(userEntity.getSurname())
-            .username(userEntity.getUsername())
-            .email(userEntity.getEmail())
-            .password(userEntity.getPassword())
-            .build();
-
-        doReturn(Optional.of(userEntity)).when(usersRepository).findById(uuid);
-        doReturn(user).when(userEntityMappers).convertFromInfrastructure(userEntity);
-
-        Optional<User> userResult = authRepoServiceImpl.findById(uuid);
-        assertTrue(userResult.isPresent());
-        assertEquals(Optional.of(user), userResult);
-
-        verify(usersRepository).findById(uuid);
-        verify(userEntityMappers).convertFromInfrastructure(userEntity);
-    }
-
-    @Test
-    void shouldPropagateException_whenFindByIDUserRepositoryFails() {
-        UUID uuid = UUID.randomUUID();
-        RuntimeException runtimeException = new RuntimeException("Repository error");
-
-        doThrow(runtimeException).when(usersRepository).findById(uuid);
-
-        Exception ex = assertThrowsExactly(RuntimeException.class, () -> authRepoServiceImpl.findById(uuid));
-        assertSame(runtimeException, ex);
-
-        verify(usersRepository).findById(uuid);
-        verify(userEntityMappers, never()).convertFromInfrastructure(any(UserEntity.class));
     }
 
     @Test
@@ -293,9 +247,8 @@ public class AuthRepoServiceImplTest {
         doReturn(Optional.of(otpVerificationRequestEntity)).when(otpVerificationRepository).findById(uuid);
         doReturn(otpVerificationRequest).when(authEntityMappers).convertFromInfrastructure(otpVerificationRequestEntity);
 
-        Optional<OTPVerificationRequest> otpVerificationRequestResult = authRepoServiceImpl.findOTPById(uuid);
-        assertTrue(otpVerificationRequestResult.isPresent());
-        assertEquals(Optional.of(otpVerificationRequest), otpVerificationRequestResult);
+        OTPVerificationRequest otpVerificationRequestResult = authRepoServiceImpl.findOTPById(uuid);
+        assertEquals(otpVerificationRequest, otpVerificationRequestResult);
 
         verify(otpVerificationRepository).findById(uuid);
         verify(authEntityMappers).convertFromInfrastructure(otpVerificationRequestEntity);
@@ -384,9 +337,8 @@ public class AuthRepoServiceImplTest {
         doReturn(Optional.of(authTokenEntity)).when(authTokenRepository).findById(uuid);
         doReturn(authToken).when(authEntityMappers).convertFromInfrastructure(authTokenEntity);
 
-        Optional<AuthToken> authTokenResult = authRepoServiceImpl.findAuthById(uuid);
-        assertTrue(authTokenResult.isPresent());
-        assertEquals(Optional.of(authToken), authTokenResult);
+        AuthToken authTokenResult = authRepoServiceImpl.findAuthById(uuid);
+        assertEquals(authToken, authTokenResult);
 
         verify(authTokenRepository).findById(uuid);
         verify(authEntityMappers).convertFromInfrastructure(authTokenEntity);

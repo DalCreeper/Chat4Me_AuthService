@@ -1,4 +1,4 @@
-package com.advancia.chat4me_auth_service.application.services.impl;
+package com.advancia.chat4me_auth_service.application;
 
 import com.advancia.Chat4Me_Auth_Service.generated.application.api.UsersApiDelegate;
 import com.advancia.Chat4Me_Auth_Service.generated.application.model.UserDto;
@@ -21,7 +21,6 @@ public class UsersApiDelegateImpl implements UsersApiDelegate {
     public ResponseEntity<List<UserDto>> getUsers() {
         List<User> users = userService.getUsers();
         List<UserDto> usersDto = userMappers.convertFromDomain(users);
-
         return ResponseEntity.ok(usersDto);
     }
 }

@@ -2,6 +2,7 @@ package com.advancia.chat4me_auth_service.domain.services.impl;
 
 import com.advancia.chat4me_auth_service.domain.services.JWTProvider;
 import com.advancia.chat4me_auth_service.domain.services.SystemDateTimeProvider;
+import com.advancia.chat4me_auth_service.domain.exceptions.JWTNotValidatedException;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -40,10 +41,10 @@ public class JWTProviderImpl implements JWTProvider {
                 .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token);
+            log.info("JWT validated" + "\n");
             return true;
         } catch(JwtException e) {
-            log.error("validateJwt Exception: ", e);
-            return false;
+            throw new JWTNotValidatedException(e);
         }
     }
 }

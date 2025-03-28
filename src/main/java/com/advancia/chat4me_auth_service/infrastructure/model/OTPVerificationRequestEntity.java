@@ -17,7 +17,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OTPVerificationRequestEntity {
-
     @Id
     private UUID challengeId;
     private String otp;

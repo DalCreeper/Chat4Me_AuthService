@@ -1,14 +1,17 @@
-package com.advancia.chat4me_auth_service.application.services.impl;
+package com.advancia.chat4me_auth_service.application;
 
 import com.advancia.Chat4Me_Auth_Service.generated.application.api.AuthApiDelegate;
 import com.advancia.Chat4Me_Auth_Service.generated.application.model.*;
 import com.advancia.chat4me_auth_service.application.mappers.AuthMappers;
+import com.advancia.chat4me_auth_service.domain.exceptions.ApiAuthExceptionHandler;
 import com.advancia.chat4me_auth_service.domain.model.AuthToken;
 import com.advancia.chat4me_auth_service.domain.model.ChallengeResponse;
 import com.advancia.chat4me_auth_service.domain.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,11 +35,8 @@ public class AuthApiDelegateImpl implements AuthApiDelegate {
 
     @Override
     public ResponseEntity<Void> validateToken(TokenValidationRequestDto tokenValidationRequestDto) {
-        if(authService.tokenValidation(authMappers.convertToDomain(tokenValidationRequestDto))) {
-            return ResponseEntity.ok().body(null);
-        } else {
-            return ResponseEntity.badRequest().build();
-        }
+        authService.tokenValidation(authMappers.convertToDomain(tokenValidationRequestDto));
+        return ResponseEntity.ok().body(null);
     }
 
     @Override

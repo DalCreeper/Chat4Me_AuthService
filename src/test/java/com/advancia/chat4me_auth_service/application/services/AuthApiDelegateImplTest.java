@@ -2,7 +2,7 @@ package com.advancia.chat4me_auth_service.application.services;
 
 import com.advancia.Chat4Me_Auth_Service.generated.application.model.*;
 import com.advancia.chat4me_auth_service.application.mappers.AuthMappers;
-import com.advancia.chat4me_auth_service.application.services.impl.AuthApiDelegateImpl;
+import com.advancia.chat4me_auth_service.application.AuthApiDelegateImpl;
 import com.advancia.chat4me_auth_service.domain.model.*;
 import com.advancia.chat4me_auth_service.domain.services.AuthService;
 import org.junit.jupiter.api.Test;
@@ -163,28 +163,6 @@ public class AuthApiDelegateImplTest {
 
         ResponseEntity<Void> response = authApiDelegateImpl.validateToken(tokenValidationRequestDto);
         assertEquals(200, response.getStatusCode().value());
-
-        verify(authMappers).convertToDomain(tokenValidationRequestDto);
-        verify(authService).tokenValidation(tokenValidationRequest);
-    }
-
-    @Test
-    void shouldReturnBadRequest_whenTokenValidationFails() {
-        TokenValidationRequestDto tokenValidationRequestDto = new TokenValidationRequestDto()
-            .tokenId(UUID.randomUUID())
-            .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik")
-            .userId(UUID.randomUUID());
-        TokenValidationRequest tokenValidationRequest = TokenValidationRequest.builder()
-            .tokenId(tokenValidationRequestDto.getTokenId())
-            .accessToken(tokenValidationRequestDto.getAccessToken())
-            .userId(tokenValidationRequestDto.getUserId())
-            .build();
-
-        doReturn(tokenValidationRequest).when(authMappers).convertToDomain(tokenValidationRequestDto);
-        doReturn(false).when(authService).tokenValidation(tokenValidationRequest);
-
-        ResponseEntity<Void> response = authApiDelegateImpl.validateToken(tokenValidationRequestDto);
-        assertEquals(400, response.getStatusCode().value());
 
         verify(authMappers).convertToDomain(tokenValidationRequestDto);
         verify(authService).tokenValidation(tokenValidationRequest);

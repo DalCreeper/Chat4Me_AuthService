@@ -1,5 +1,6 @@
 package com.advancia.chat4me_auth_service.domain.services.impl;
 
+import com.advancia.chat4me_auth_service.domain.exceptions.JWTNotValidatedException;
 import com.advancia.chat4me_auth_service.domain.services.SystemDateTimeProvider;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -82,8 +83,23 @@ class JWTProviderImplTest {
     }
 
     @Test
-    void shouldReturnFalseAndCatchException_whenJWTIsInvalid() {
+    void shouldThrowException_whenJWTIsExpired() {
+        OffsetDateTime pastTime = OffsetDateTime.now().minusMinutes(10);
+        Date expiredDate = Date.from(pastTime.toInstant());
+        UUID userId = UUID.randomUUID();
+        String expiredToken = Jwts.builder()
+            .setSubject(userId.toString())
+            .setIssuedAt(Date.from(pastTime.minusMinutes(1).toInstant()))
+            .setExpiration(expiredDate)
+            .signWith(SignatureAlgorithm.HS256, secretKey)
+            .compact();
+
+        assertThrows(JWTNotValidatedException.class, () -> jwtProviderImpl.validateJwt(expiredToken));
+    }
+
+    @Test
+    void shouldThrowException_whenJWTIsInvalid() {
         String invalidToken = "invalid.jwt.token";
-        assertFalse(jwtProviderImpl.validateJwt(invalidToken));
+        assertThrows(JWTNotValidatedException.class, () -> jwtProviderImpl.validateJwt(invalidToken));
     }
 }

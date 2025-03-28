@@ -13,7 +13,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TokenValidationRequestEntity {
-
     @Id
     private UUID tokenId;
     private String accessToken;

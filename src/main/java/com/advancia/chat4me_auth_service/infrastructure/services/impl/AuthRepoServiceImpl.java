@@ -1,5 +1,6 @@
 package com.advancia.chat4me_auth_service.infrastructure.services.impl;
 
+import com.advancia.chat4me_auth_service.domain.exceptions.*;
 import com.advancia.chat4me_auth_service.domain.model.*;
 import com.advancia.chat4me_auth_service.domain.repository.AuthRepoService;
 import com.advancia.chat4me_auth_service.domain.services.PasswordManager;
@@ -30,15 +31,9 @@ public class AuthRepoServiceImpl implements AuthRepoService {
     private final UserEntityMappers userEntityMappers;
 
     @Override
-    public Optional<User> findByUsernameAndPassword(String username, String encryptedPassword) {
+    public User findByUsernameAndPassword(String username, String encryptedPassword) {
         Optional<UserEntity> userEntity = usersRepository.findByUsername(username).filter(userE -> passwordManager.matches(encryptedPassword, userE.getPassword()));
-        return userEntity.map(userEntityMappers::convertFromInfrastructure);
-    }
-
-    @Override
-    public Optional<User> findById(UUID id) {
-        Optional<UserEntity> userEntity = usersRepository.findById(id);
-        return userEntity.map(userEntityMappers::convertFromInfrastructure);
+        return userEntity.map(userEntityMappers::convertFromInfrastructure).orElseThrow(InvalidCredentialException::new);
     }
 
     @Override
@@ -55,9 +50,9 @@ public class AuthRepoServiceImpl implements AuthRepoService {
     }
 
     @Override
-    public Optional<OTPVerificationRequest> findOTPById(UUID challengeId) {
+    public OTPVerificationRequest findOTPById(UUID challengeId) {
         Optional<OTPVerificationRequestEntity> otpVerificationRequestEntity = otpVerificationRepository.findById(challengeId);
-        return otpVerificationRequestEntity.map(authEntityMappers::convertFromInfrastructure);
+        return otpVerificationRequestEntity.map(authEntityMappers::convertFromInfrastructure).orElseThrow(ChallengeNotFoundException::new);
     }
 
     @Override
@@ -67,8 +62,8 @@ public class AuthRepoServiceImpl implements AuthRepoService {
     }
 
     @Override
-    public Optional<AuthToken> findAuthById(UUID refreshTokenId) {
+    public AuthToken findAuthById(UUID refreshTokenId) {
         Optional<AuthTokenEntity> authTokenEntity = authTokenRepository.findById(refreshTokenId);
-        return authTokenEntity.map(authEntityMappers::convertFromInfrastructure);
+        return authTokenEntity.map(authEntityMappers::convertFromInfrastructure).orElseThrow(RefreshTokenNotFoundException::new);
     }
 }

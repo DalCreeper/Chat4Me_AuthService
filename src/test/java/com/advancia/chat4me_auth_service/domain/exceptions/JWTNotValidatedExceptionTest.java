@@ -1,0 +1,25 @@
+package com.advancia.chat4me_auth_service.domain.exceptions;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+public class JWTNotValidatedExceptionTest {
+    @Test
+    void shouldThrowAnExceptionWithMessage_whenIsAllOk() {
+        JWTNotValidatedException jwtNotValidatedException = new JWTNotValidatedException();
+
+        assertEquals("JWT not validated", jwtNotValidatedException.getMessage());
+        assertNull(jwtNotValidatedException.getCause());
+    }
+
+    @Test
+    void shouldThrowAnExceptionWithMessageAndCause_whenIsAllOk() {
+        Throwable cause = new RuntimeException("Underlying JWT validation error");
+        JWTNotValidatedException jwtNotValidatedException = new JWTNotValidatedException(cause);
+
+        assertEquals("JWT not validated", jwtNotValidatedException.getMessage());
+        assertEquals(cause, jwtNotValidatedException.getCause());
+    }
+}

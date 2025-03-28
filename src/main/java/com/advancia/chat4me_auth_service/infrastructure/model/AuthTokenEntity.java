@@ -18,7 +18,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuthTokenEntity {
-
     @Id
     private UUID tokenId;
 

@@ -1,5 +1,7 @@
 package com.advancia.chat4me_auth_service.domain.services.impl;
 
+import com.advancia.chat4me_auth_service.domain.exceptions.InvalidOTPException;
+import com.advancia.chat4me_auth_service.domain.exceptions.OTPExpiredException;
 import com.advancia.chat4me_auth_service.domain.model.*;
 import com.advancia.chat4me_auth_service.domain.repository.AuthRepoService;
 import com.advancia.chat4me_auth_service.domain.services.JWTProvider;
@@ -11,13 +13,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -78,7 +80,7 @@ public class AuthServiceImplTest {
             .userId(user.getId())
             .build();
 
-        doReturn(Optional.of(user)).when(authRepoService).findByUsernameAndPassword(loginRequest.getUsername(), loginRequest.getPassword());
+        doReturn(user).when(authRepoService).findByUsernameAndPassword(loginRequest.getUsername(), loginRequest.getPassword());
         doNothing().when(authRepoService).saveOTPVerificationRequest(otpVerificationRequest);
 
         ChallengeResponse challengeResponseResult = authServiceImpl.login(loginRequest);
@@ -86,25 +88,6 @@ public class AuthServiceImplTest {
 
         verify(authRepoService).findByUsernameAndPassword(loginRequest.getUsername(), loginRequest.getPassword());
         verify(authRepoService).saveOTPVerificationRequest(otpVerificationRequest);
-    }
-
-    @Test
-    void shouldReturnChallengeResponseWithInvalidCredentialMessage_whenLoginFails() {
-        LoginRequest loginRequest = LoginRequest.builder()
-            .username("testUser")
-            .password("wrongTestPassword")
-            .build();
-        ChallengeResponse challengeResponse = ChallengeResponse.builder()
-            .message("Invalid credentials")
-            .build();
-
-        doReturn(Optional.empty()).when(authRepoService).findByUsernameAndPassword(loginRequest.getUsername(), loginRequest.getPassword());
-
-        ChallengeResponse challengeResponseResult = authServiceImpl.login(loginRequest);
-        assertEquals(challengeResponse, challengeResponseResult);
-
-        verify(authRepoService).findByUsernameAndPassword(loginRequest.getUsername(), loginRequest.getPassword());
-        verify(authRepoService, never()).saveOTPVerificationRequest(any(OTPVerificationRequest.class));
     }
 
     @Test
@@ -153,7 +136,7 @@ public class AuthServiceImplTest {
             .userId(otpVerificationRequest.getUserId())
             .build();
 
-        doReturn(Optional.of(otpRecord)).when(authRepoService).findOTPById(otpVerificationRequest.getChallengeId());
+        doReturn(otpRecord).when(authRepoService).findOTPById(otpVerificationRequest.getChallengeId());
         assertFalse(otpVerificationRequest.getExpiresAt() < fixedExpires);
         assertEquals(otpRecord.getOtp(), otpVerificationRequest.getOtp());
         doNothing().when(authRepoService).saveAuthToken(authToken);
@@ -183,22 +166,20 @@ public class AuthServiceImplTest {
             .expiresAt(otpVerificationRequest.getExpiresAt())
             .userId(otpVerificationRequest.getUserId())
             .build();
-        AuthToken authToken = AuthToken.builder()
-            .message("OTP expired")
-            .build();
 
-        doReturn(Optional.of(otpRecord)).when(authRepoService).findOTPById(otpVerificationRequest.getChallengeId());
+        doReturn(otpRecord).when(authRepoService).findOTPById(otpVerificationRequest.getChallengeId());
         assertTrue(otpVerificationRequest.getExpiresAt() < fixedExpires);
 
-        AuthToken authTokenResult = authServiceImpl.otpVerification(otpVerificationRequest);
-        assertEquals(authToken, authTokenResult);
+        AuthServiceImpl authServiceSpy = Mockito.spy(authServiceImpl);
+        doThrow(new OTPExpiredException()).when(authServiceSpy).buildOTPExpiredException();
+        assertThrows(OTPExpiredException.class, () -> authServiceSpy.otpVerification(otpVerificationRequest));
 
         verify(authRepoService).findOTPById(otpVerificationRequest.getChallengeId());
         verify(authRepoService, never()).saveAuthToken(any(AuthToken.class));
     }
 
     @Test
-    void shouldReturnAuthTokenWithInvalidOTPMessage_whenOTPVerificationFails() {
+    void shouldThrowInvalidOTPException_whenOTPVerificationFails() {
         OffsetDateTime fixedCurrentTimestamp = OffsetDateTime.parse("2025-03-12T12:00:00.174779800+01:00");
         doReturn(fixedCurrentTimestamp).when(systemDateTimeProvider).now();
         int fixedExpires = (int) fixedCurrentTimestamp.toEpochSecond();
@@ -215,37 +196,14 @@ public class AuthServiceImplTest {
                 .expiresAt(otpVerificationRequest.getExpiresAt())
                 .userId(otpVerificationRequest.getUserId())
                 .build();
-        AuthToken authToken = AuthToken.builder()
-                .message("Invalid OTP")
-                .build();
 
-        doReturn(Optional.of(otpRecord)).when(authRepoService).findOTPById(otpVerificationRequest.getChallengeId());
+        doReturn(otpRecord).when(authRepoService).findOTPById(otpVerificationRequest.getChallengeId());
         assertFalse(otpVerificationRequest.getExpiresAt() < fixedExpires);
         assertNotEquals(otpRecord.getOtp(), otpVerificationRequest.getOtp());
 
-        AuthToken authTokenResult = authServiceImpl.otpVerification(otpVerificationRequest);
-        assertEquals(authToken, authTokenResult);
-
-        verify(authRepoService).findOTPById(otpVerificationRequest.getChallengeId());
-        verify(authRepoService, never()).saveAuthToken(any(AuthToken.class));
-    }
-
-    @Test
-    void shouldReturnAuthTokenWithChallengeNotFoundMessage_whenOTPVerificationFails() {
-        OTPVerificationRequest otpVerificationRequest = OTPVerificationRequest.builder()
-            .challengeId(UUID.randomUUID())
-            .otp("123456")
-            .expiresAt(86400000L) // 1 day
-            .userId(UUID.randomUUID())
-            .build();
-        AuthToken authToken = AuthToken.builder()
-            .message("Challenge not found")
-            .build();
-
-        doReturn(Optional.empty()).when(authRepoService).findOTPById(otpVerificationRequest.getChallengeId());
-
-        AuthToken authTokenResult = authServiceImpl.otpVerification(otpVerificationRequest);
-        assertEquals(authToken, authTokenResult);
+        AuthServiceImpl authServiceSpy = Mockito.spy(authServiceImpl);
+        doThrow(new InvalidOTPException()).when(authServiceSpy).buildInvalidOTPException();
+        assertThrows(InvalidOTPException.class, () -> authServiceSpy.otpVerification(otpVerificationRequest));
 
         verify(authRepoService).findOTPById(otpVerificationRequest.getChallengeId());
         verify(authRepoService, never()).saveAuthToken(any(AuthToken.class));
@@ -346,7 +304,7 @@ public class AuthServiceImplTest {
             .userId(refreshTokenRequest.getUserId())
             .build();
 
-        doReturn(Optional.of(authToken)).when(authRepoService).findAuthById(refreshTokenRequest.getRefreshTokenId());
+        doReturn(authToken).when(authRepoService).findAuthById(refreshTokenRequest.getRefreshTokenId());
         doNothing().when(authRepoService).saveAuthToken(newAuthToken);
 
         AuthToken authTokenResult = authServiceImpl.refreshToken(refreshTokenRequest);
@@ -354,25 +312,6 @@ public class AuthServiceImplTest {
 
         verify(authRepoService).findAuthById(refreshTokenRequest.getRefreshTokenId());
         verify(authRepoService).saveAuthToken(newAuthToken);
-    }
-
-    @Test
-    void shouldReturnAuthTokenWithRefreshTokenNotFoundMessage_whenRefreshTokenFails() {
-        RefreshTokenRequest refreshTokenRequest = RefreshTokenRequest.builder()
-            .refreshTokenId(UUID.randomUUID())
-            .userId(UUID.randomUUID())
-            .build();
-        AuthToken authToken = AuthToken.builder()
-            .message("Refresh token not found")
-            .build();
-
-        doReturn(Optional.empty()).when(authRepoService).findAuthById(refreshTokenRequest.getRefreshTokenId());
-
-        AuthToken authTokenResult = authServiceImpl.refreshToken(refreshTokenRequest);
-        assertEquals(authToken, authTokenResult);
-
-        verify(authRepoService).findAuthById(refreshTokenRequest.getRefreshTokenId());
-        verify(authRepoService, never()).saveAuthToken(any(AuthToken.class));
     }
 
     @Test
@@ -389,5 +328,23 @@ public class AuthServiceImplTest {
         assertSame(runtimeException, ex);
 
         verify(authRepoService).findAuthById(refreshTokenRequest.getRefreshTokenId());
+    }
+
+    @Test
+    void shouldReturnNewInvalidOTPException_whenIsAllOk() {
+        AuthServiceImpl authService = new AuthServiceImpl(null, null, null, null, null);
+
+        InvalidOTPException invalidOTPException = authService.buildInvalidOTPException();
+        assertNotNull(invalidOTPException);
+        assertInstanceOf(InvalidOTPException.class, invalidOTPException);
+    }
+
+    @Test
+    void shouldReturnNewOTPExpiredException_whenIsAllOk() {
+        AuthServiceImpl authService = new AuthServiceImpl(null, null, null, null, null);
+
+        OTPExpiredException otpExpiredException = authService.buildOTPExpiredException();
+        assertNotNull(otpExpiredException);
+        assertInstanceOf(OTPExpiredException.class, otpExpiredException);
     }
 }

@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(MockitoExtension.class)
 public class AuthMappersImplTest {
     @InjectMocks
-    private AuthMappersImpl authMappers;
+    private AuthMappersImpl authMappersImpl;
 
     @Test
     void shouldConvertChallengeResponseFromDomain_whenIsAllOk() {
@@ -24,7 +24,7 @@ public class AuthMappersImplTest {
             .userId(UUID.randomUUID())
             .build();
 
-        ChallengeResponseDto challengeResponseDto = authMappers.convertFromDomain(challengeResponse);
+        ChallengeResponseDto challengeResponseDto = authMappersImpl.convertFromDomain(challengeResponse);
         assertNotNull(challengeResponseDto);
         assertEquals(challengeResponse.getChallengeId(), challengeResponseDto.getChallengeId());
         assertEquals(challengeResponse.getMessage(), challengeResponseDto.getMessage());
@@ -33,7 +33,7 @@ public class AuthMappersImplTest {
 
     @Test
     void shouldReturnNull_whenChallengeResponseIsNull() {
-        assertNull(authMappers.convertFromDomain((ChallengeResponse) null));
+        assertNull(authMappersImpl.convertFromDomain((ChallengeResponse) null));
     }
 
     @Test
@@ -43,7 +43,7 @@ public class AuthMappersImplTest {
             "password"
         );
 
-        LoginRequest loginRequest = authMappers.convertToDomain(loginRequestDto);
+        LoginRequest loginRequest = authMappersImpl.convertToDomain(loginRequestDto);
         assertNotNull(loginRequest);
         assertEquals(loginRequestDto.getUsername(), loginRequest.getUsername());
         assertEquals(loginRequestDto.getPassword(), loginRequest.getPassword());
@@ -51,7 +51,7 @@ public class AuthMappersImplTest {
 
     @Test
     void shouldReturnNull_whenLoginRequestDtoIsNull() {
-        assertNull(authMappers.convertToDomain((LoginRequestDto) null));
+        assertNull(authMappersImpl.convertToDomain((LoginRequestDto) null));
     }
 
     @Test
@@ -64,7 +64,7 @@ public class AuthMappersImplTest {
             .userId(UUID.randomUUID())
             .build();
 
-        AuthTokenDto authTokenDto = authMappers.convertFromDomain(authToken);
+        AuthTokenDto authTokenDto = authMappersImpl.convertFromDomain(authToken);
         assertNotNull(authTokenDto);
         assertEquals(authToken.getTokenId(), authTokenDto.getTokenId());
         assertEquals(authToken.getAccessToken(), authTokenDto.getAccessToken());
@@ -75,7 +75,7 @@ public class AuthMappersImplTest {
 
     @Test
     void shouldReturnNull_whenAuthTokenIsNull() {
-        assertNull(authMappers.convertFromDomain((AuthToken) null));
+        assertNull(authMappersImpl.convertFromDomain((AuthToken) null));
     }
 
     @Test
@@ -86,7 +86,7 @@ public class AuthMappersImplTest {
             .expiresAt(1740478333L)
             .userId(UUID.randomUUID());
 
-        OTPVerificationRequest domain = authMappers.convertToDomain(otpVerificationRequestDto);
+        OTPVerificationRequest domain = authMappersImpl.convertToDomain(otpVerificationRequestDto);
         assertNotNull(domain);
         assertEquals(otpVerificationRequestDto.getChallengeId(), domain.getChallengeId());
         assertEquals(otpVerificationRequestDto.getOtp(), domain.getOtp());
@@ -96,7 +96,7 @@ public class AuthMappersImplTest {
 
     @Test
     void shouldReturnNull_whenOTPVerificationRequestDtoIsNull() {
-        assertNull(authMappers.convertToDomain((OTPVerificationRequestDto) null));
+        assertNull(authMappersImpl.convertToDomain((OTPVerificationRequestDto) null));
     }
 
     @Test
@@ -106,7 +106,7 @@ public class AuthMappersImplTest {
             .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik")
             .userId(UUID.randomUUID());
 
-        TokenValidationRequest domain = authMappers.convertToDomain(tokenValidationRequestDto);
+        TokenValidationRequest domain = authMappersImpl.convertToDomain(tokenValidationRequestDto);
         assertNotNull(domain);
         assertEquals(tokenValidationRequestDto.getTokenId(), domain.getTokenId());
         assertEquals(tokenValidationRequestDto.getAccessToken(), domain.getAccessToken());
@@ -115,7 +115,7 @@ public class AuthMappersImplTest {
 
     @Test
     void shouldReturnNull_whenTokenValidationRequestDtoIsNull() {
-        assertNull(authMappers.convertToDomain((TokenValidationRequestDto) null));
+        assertNull(authMappersImpl.convertToDomain((TokenValidationRequestDto) null));
     }
 
     @Test
@@ -124,7 +124,7 @@ public class AuthMappersImplTest {
             .refreshTokenId(UUID.randomUUID())
             .userId(UUID.randomUUID());
 
-        RefreshTokenRequest domain = authMappers.convertToDomain(refreshTokenRequestDto);
+        RefreshTokenRequest domain = authMappersImpl.convertToDomain(refreshTokenRequestDto);
         assertNotNull(domain);
         assertEquals(refreshTokenRequestDto.getRefreshTokenId(), domain.getRefreshTokenId());
         assertEquals(refreshTokenRequestDto.getUserId(), domain.getUserId());
@@ -132,6 +132,6 @@ public class AuthMappersImplTest {
 
     @Test
     void shouldReturnNull_whenRefreshTokenRequestDtoIsNull() {
-        assertNull(authMappers.convertToDomain((RefreshTokenRequestDto) null));
+        assertNull(authMappersImpl.convertToDomain((RefreshTokenRequestDto) null));
     }
 }

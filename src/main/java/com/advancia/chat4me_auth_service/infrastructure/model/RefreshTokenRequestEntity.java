@@ -13,7 +13,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RefreshTokenRequestEntity {
-
     @Id
     private UUID refreshTokenId;
     private UUID userId;
