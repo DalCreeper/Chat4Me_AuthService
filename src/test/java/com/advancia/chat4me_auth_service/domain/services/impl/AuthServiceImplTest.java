@@ -4,6 +4,7 @@ import com.advancia.chat4me_auth_service.domain.exceptions.InvalidOTPException;
 import com.advancia.chat4me_auth_service.domain.exceptions.OTPExpiredException;
 import com.advancia.chat4me_auth_service.domain.model.*;
 import com.advancia.chat4me_auth_service.domain.repository.AuthRepoService;
+import com.advancia.chat4me_auth_service.domain.repository.UsersRepoService;
 import com.advancia.chat4me_auth_service.domain.services.JWTProvider;
 import com.advancia.chat4me_auth_service.domain.services.OTPProvider;
 import com.advancia.chat4me_auth_service.domain.services.SystemDateTimeProvider;
@@ -30,6 +31,8 @@ import static org.mockito.Mockito.verify;
 public class AuthServiceImplTest {
     @Mock
     private AuthRepoService authRepoService;
+    @Mock
+    private UsersRepoService usersRepoService;
     @Mock
     private OTPProvider otpProvider;
     @Mock
@@ -331,8 +334,38 @@ public class AuthServiceImplTest {
     }
 
     @Test
+    void shouldReturnUser_whenIsAllOk() {
+        UUID userId = UUID.fromString("7f113bb2-38eb-47e7-84a2-cf2703004b86");
+        String accessToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDE4NjUxMDksImV4cCI6MTc0MTk1MTUwOX0.das6YB90HEXhxzSOh8ukhHXmCjwPBmzHUx4yjIvaWJI";
+        doReturn(userId).when(jwtProvider).getUserIdFromJwt(accessToken);
+
+        UserIdRequest userIDRequest = UserIdRequest.builder()
+            .accessToken(accessToken)
+            .build();
+        User user = User.builder()
+            .id(userId)
+            .name("testName")
+            .surname("testSurname")
+            .username("testUser")
+            .email("testEmail")
+            .password("testPassword")
+            .build();
+        boolean validation = true;
+
+        doReturn(validation).when(jwtProvider).validateJwt(userIDRequest.getAccessToken());
+        assertTrue(validation);
+        doReturn(user).when(usersRepoService).getUser(userId);
+
+        User userResult = authServiceImpl.extractUUID(userIDRequest);
+        assertEquals(user, userResult);
+
+        verify(jwtProvider).validateJwt(userIDRequest.getAccessToken());
+        verify(usersRepoService).getUser(userId);
+    }
+
+    @Test
     void shouldReturnNewInvalidOTPException_whenIsAllOk() {
-        AuthServiceImpl authService = new AuthServiceImpl(null, null, null, null, null);
+        AuthServiceImpl authService = new AuthServiceImpl(null, null, null, null, null, null);
 
         InvalidOTPException invalidOTPException = authService.buildInvalidOTPException();
         assertNotNull(invalidOTPException);
@@ -341,7 +374,7 @@ public class AuthServiceImplTest {
 
     @Test
     void shouldReturnNewOTPExpiredException_whenIsAllOk() {
-        AuthServiceImpl authService = new AuthServiceImpl(null, null, null, null, null);
+        AuthServiceImpl authService = new AuthServiceImpl(null, null, null, null, null, null);
 
         OTPExpiredException otpExpiredException = authService.buildOTPExpiredException();
         assertNotNull(otpExpiredException);

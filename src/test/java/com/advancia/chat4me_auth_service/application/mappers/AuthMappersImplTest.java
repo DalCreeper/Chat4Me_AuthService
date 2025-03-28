@@ -86,12 +86,12 @@ public class AuthMappersImplTest {
             .expiresAt(1740478333L)
             .userId(UUID.randomUUID());
 
-        OTPVerificationRequest domain = authMappersImpl.convertToDomain(otpVerificationRequestDto);
-        assertNotNull(domain);
-        assertEquals(otpVerificationRequestDto.getChallengeId(), domain.getChallengeId());
-        assertEquals(otpVerificationRequestDto.getOtp(), domain.getOtp());
-        assertEquals(otpVerificationRequestDto.getUserId(), domain.getUserId());
-        assertEquals(otpVerificationRequestDto.getExpiresAt(), domain.getExpiresAt());
+        OTPVerificationRequest otpVerificationRequest = authMappersImpl.convertToDomain(otpVerificationRequestDto);
+        assertNotNull(otpVerificationRequest);
+        assertEquals(otpVerificationRequestDto.getChallengeId(), otpVerificationRequest.getChallengeId());
+        assertEquals(otpVerificationRequestDto.getOtp(), otpVerificationRequest.getOtp());
+        assertEquals(otpVerificationRequestDto.getUserId(), otpVerificationRequest.getUserId());
+        assertEquals(otpVerificationRequestDto.getExpiresAt(), otpVerificationRequest.getExpiresAt());
     }
 
     @Test
@@ -106,11 +106,11 @@ public class AuthMappersImplTest {
             .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik")
             .userId(UUID.randomUUID());
 
-        TokenValidationRequest domain = authMappersImpl.convertToDomain(tokenValidationRequestDto);
-        assertNotNull(domain);
-        assertEquals(tokenValidationRequestDto.getTokenId(), domain.getTokenId());
-        assertEquals(tokenValidationRequestDto.getAccessToken(), domain.getAccessToken());
-        assertEquals(tokenValidationRequestDto.getUserId(), domain.getUserId());
+        TokenValidationRequest tokenValidationRequest = authMappersImpl.convertToDomain(tokenValidationRequestDto);
+        assertNotNull(tokenValidationRequest);
+        assertEquals(tokenValidationRequestDto.getTokenId(), tokenValidationRequest.getTokenId());
+        assertEquals(tokenValidationRequestDto.getAccessToken(), tokenValidationRequest.getAccessToken());
+        assertEquals(tokenValidationRequestDto.getUserId(), tokenValidationRequest.getUserId());
     }
 
     @Test
@@ -124,14 +124,29 @@ public class AuthMappersImplTest {
             .refreshTokenId(UUID.randomUUID())
             .userId(UUID.randomUUID());
 
-        RefreshTokenRequest domain = authMappersImpl.convertToDomain(refreshTokenRequestDto);
-        assertNotNull(domain);
-        assertEquals(refreshTokenRequestDto.getRefreshTokenId(), domain.getRefreshTokenId());
-        assertEquals(refreshTokenRequestDto.getUserId(), domain.getUserId());
+        RefreshTokenRequest refreshTokenRequest = authMappersImpl.convertToDomain(refreshTokenRequestDto);
+        assertNotNull(refreshTokenRequest);
+        assertEquals(refreshTokenRequestDto.getRefreshTokenId(), refreshTokenRequest.getRefreshTokenId());
+        assertEquals(refreshTokenRequestDto.getUserId(), refreshTokenRequest.getUserId());
     }
 
     @Test
     void shouldReturnNull_whenRefreshTokenRequestDtoIsNull() {
         assertNull(authMappersImpl.convertToDomain((RefreshTokenRequestDto) null));
+    }
+
+    @Test
+    void shouldConvertUserIDRequestToDomain_whenIsAllOk() {
+        UserIdRequestDto userIdRequestDto = new UserIdRequestDto()
+            .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik");
+
+        UserIdRequest userIdRequest = authMappersImpl.convertToDomain(userIdRequestDto);
+        assertNotNull(userIdRequest);
+        assertEquals(userIdRequestDto.getAccessToken(), userIdRequest.getAccessToken());
+    }
+
+    @Test
+    void shouldReturnNull_whenUserIDRequestDtoIsNull() {
+        assertNull(authMappersImpl.convertToDomain((UserIdRequestDto) null));
     }
 }

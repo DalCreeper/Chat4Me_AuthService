@@ -1,4 +1,4 @@
-package com.advancia.chat4me_auth_service.infrastructure.model;
+package com.advancia.chat4me_auth_service.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginRequestEntity {
-    private String username;
-    private String password;
+public class UserIdRequest {
+    private String accessToken;
 }

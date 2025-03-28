@@ -7,4 +7,5 @@ public interface AuthService {
     AuthToken otpVerification(OTPVerificationRequest otpVerificationRequest);
     boolean tokenValidation(TokenValidationRequest tokenValidationRequest);
     AuthToken refreshToken(RefreshTokenRequest refreshTokenRequest);
+    User extractUUID(UserIdRequest userIDRequest);
 }

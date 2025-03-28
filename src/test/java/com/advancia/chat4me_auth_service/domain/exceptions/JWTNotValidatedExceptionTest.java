@@ -22,4 +22,15 @@ public class JWTNotValidatedExceptionTest {
         assertEquals("JWT not validated", jwtNotValidatedException.getMessage());
         assertEquals(cause, jwtNotValidatedException.getCause());
     }
+
+    @Test
+    void shouldThrowAnExceptionWithPromptMessageAndCause_whenIsAllOk() {
+        String customMessage = "Custom JWT validation error";
+        Throwable cause = new RuntimeException("Underlying JWT issue");
+
+        JWTNotValidatedException jwtNotValidatedException = new JWTNotValidatedException(customMessage, cause);
+
+        assertEquals(customMessage, jwtNotValidatedException.getMessage());
+        assertEquals(cause, jwtNotValidatedException.getCause());
+    }
 }

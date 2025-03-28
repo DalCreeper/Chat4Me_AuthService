@@ -102,4 +102,28 @@ class JWTProviderImplTest {
         String invalidToken = "invalid.jwt.token";
         assertThrows(JWTNotValidatedException.class, () -> jwtProviderImpl.validateJwt(invalidToken));
     }
+
+    @Test
+    void shouldReturnUserId_whenJWTIsValid() {
+        OffsetDateTime fixedCurrentTimestamp = OffsetDateTime.now();
+        doReturn(fixedCurrentTimestamp).when(systemDateTimeProvider).now();
+        Date fixedDateIssuedAt = Date.from(fixedCurrentTimestamp.toInstant());
+        Date fixedDateExpiration = Date.from(systemDateTimeProvider.now().plus(jwtDuration).toInstant());
+        UUID userId = UUID.randomUUID();
+        String token = Jwts.builder()
+            .setSubject(userId.toString())
+            .setIssuedAt(fixedDateIssuedAt)
+            .setExpiration(fixedDateExpiration)
+            .signWith(SignatureAlgorithm.HS256, secretKey)
+            .compact();
+
+        UUID userIdResult = jwtProviderImpl.getUserIdFromJwt(token);
+        assertEquals(userId, userIdResult);
+    }
+
+    @Test
+    void shouldThrowException_whenJWTIsInvalidForUserIdExtraction() {
+        String invalidToken = "invalid.jwt.token";
+        assertThrows(JWTNotValidatedException.class, () -> jwtProviderImpl.getUserIdFromJwt(invalidToken));
+    }
 }

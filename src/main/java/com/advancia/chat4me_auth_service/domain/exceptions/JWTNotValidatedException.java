@@ -8,4 +8,8 @@ public class JWTNotValidatedException extends AuthServiceException {
     public JWTNotValidatedException(Throwable throwable) {
         super("JWT not validated", throwable);
     }
+
+    public JWTNotValidatedException(String message, Throwable throwable) {
+        super(message, throwable);
+    }
 }

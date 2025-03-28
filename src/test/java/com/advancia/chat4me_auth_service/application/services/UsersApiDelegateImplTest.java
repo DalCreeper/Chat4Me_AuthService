@@ -30,6 +30,7 @@ public class UsersApiDelegateImplTest {
 
     @Test
     void shouldReturnAvailableUserList_whenIsAllOk() {
+        String accessToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDE4NjUxMDksImV4cCI6MTc0MTk1MTUwOX0.das6YB90HEXhxzSOh8ukhHXmCjwPBmzHUx4yjIvaWJI";
         List<User> users = List.of(
             User.builder()
                 .id(UUID.randomUUID())
@@ -69,27 +70,28 @@ public class UsersApiDelegateImplTest {
                 .tokenId(users.get(1).getTokenId())
         );
 
-        doReturn(users).when(userService).getUsers();
+        doReturn(users).when(userService).getUsers(accessToken);
         doReturn(usersDto).when(userMappers).convertFromDomain(users);
 
-        ResponseEntity<List<UserDto>> response = usersApiDelegateImpl.getUsers();
+        ResponseEntity<List<UserDto>> response = usersApiDelegateImpl.getUsers(accessToken);
         assertEquals(200, response.getStatusCode().value());
         assertEquals(usersDto, response.getBody());
 
-        verify(userService).getUsers();
+        verify(userService).getUsers(accessToken);
         verify(userMappers).convertFromDomain(users);
     }
 
     @Test
     void shouldPropagateException_whenUserServiceFails() {
+        String accessToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDE4NjUxMDksImV4cCI6MTc0MTk1MTUwOX0.das6YB90HEXhxzSOh8ukhHXmCjwPBmzHUx4yjIvaWJI";
         RuntimeException runtimeException = new RuntimeException("Service error");
 
-        doThrow(runtimeException).when(userService).getUsers();
+        doThrow(runtimeException).when(userService).getUsers(accessToken);
 
-        Exception ex = assertThrows(RuntimeException.class, () -> usersApiDelegateImpl.getUsers());
+        Exception ex = assertThrows(RuntimeException.class, () -> usersApiDelegateImpl.getUsers(accessToken));
         assertSame(runtimeException, ex);
 
-        verify(userService).getUsers();
+        verify(userService).getUsers(accessToken);
         verify(userMappers, never()).convertFromDomain(anyList());
     }
 }

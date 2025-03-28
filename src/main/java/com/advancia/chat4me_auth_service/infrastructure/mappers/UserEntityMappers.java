@@ -16,7 +16,6 @@ public interface UserEntityMappers {
     @Mapping(source = "password", target = "password")
     @Mapping(source = "tokenId", target = "tokenId")
     User convertFromInfrastructure(UserEntity userEntity);
-
     @Mapping(source = "name", target = "name")
     @Mapping(source = "surname", target = "surname")
     @Mapping(source = "username", target = "username")

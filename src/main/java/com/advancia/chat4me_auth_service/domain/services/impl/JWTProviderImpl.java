@@ -47,4 +47,18 @@ public class JWTProviderImpl implements JWTProvider {
             throw new JWTNotValidatedException(e);
         }
     }
+
+    @Override
+    public UUID getUserIdFromJwt(String token) {
+        try {
+            Jws<Claims> claims = Jwts.parser()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token);
+            String userIdString = claims.getBody().getSubject();
+            return UUID.fromString(userIdString);
+        } catch(JwtException e) {
+            throw new JWTNotValidatedException("Error extracting userId from JWT", e);
+        }
+    }
 }

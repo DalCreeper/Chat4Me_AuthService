@@ -33,4 +33,7 @@ public interface AuthMappers {
     @Mapping(source = "refreshTokenId", target = "refreshTokenId")
     @Mapping(source = "userId", target = "userId")
     RefreshTokenRequest convertToDomain(RefreshTokenRequestDto refreshTokenRequestDto);
+
+    @Mapping(source = "accessToken", target = "accessToken")
+    UserIdRequest convertToDomain(UserIdRequestDto userIdRequestDto);
 }

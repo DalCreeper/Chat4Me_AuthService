@@ -5,4 +5,5 @@ import java.util.UUID;
 public interface JWTProvider {
     String generateJwt(UUID userId);
     boolean validateJwt(String token);
+    UUID getUserIdFromJwt(String token);
 }

@@ -3,6 +3,7 @@ package com.advancia.chat4me_auth_service.application.services;
 import com.advancia.Chat4Me_Auth_Service.generated.application.model.*;
 import com.advancia.chat4me_auth_service.application.mappers.AuthMappers;
 import com.advancia.chat4me_auth_service.application.AuthApiDelegateImpl;
+import com.advancia.chat4me_auth_service.application.mappers.UserMappers;
 import com.advancia.chat4me_auth_service.domain.model.*;
 import com.advancia.chat4me_auth_service.domain.services.AuthService;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,8 @@ public class AuthApiDelegateImplTest {
     private AuthService authService;
     @Mock
     private AuthMappers authMappers;
+    @Mock
+    private UserMappers userMappers;
     @InjectMocks
     private AuthApiDelegateImpl authApiDelegateImpl;
 
@@ -248,5 +251,63 @@ public class AuthApiDelegateImplTest {
         verify(authMappers).convertToDomain(refreshTokenRequestDto);
         verify(authService).refreshToken(refreshTokenRequest);
         verify(authMappers, never()).convertFromDomain(any(AuthToken.class));
+    }
+
+    @Test
+    void shouldReturnAUserDto_whenIsAllOk() {
+        UserIdRequestDto userIdRequestDto = new UserIdRequestDto()
+            .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik");
+        UserIdRequest userIdRequest = UserIdRequest.builder()
+            .accessToken(userIdRequestDto.getAccessToken())
+            .build();
+        User user = User.builder()
+            .id(UUID.randomUUID())
+            .name("testName")
+            .surname("testSurname")
+            .username("testUsername")
+            .email("testEmail")
+            .password("testPassword")
+            .tokenId(UUID.randomUUID())
+            .build();
+        UserDto userDto = new UserDto()
+            .id(user.getId())
+            .name(user.getName())
+            .surname(user.getSurname())
+            .username(user.getUsername())
+            .email(user.getEmail())
+            .password(user.getPassword())
+            .tokenId(user.getTokenId());
+
+        doReturn(userIdRequest).when(authMappers).convertToDomain(userIdRequestDto);
+        doReturn(user).when(authService).extractUUID(userIdRequest);
+        doReturn(userDto).when(userMappers).convertFromDomain(user);
+
+        ResponseEntity<UserDto> response = authApiDelegateImpl.extractUUID(userIdRequestDto);
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(userDto, response.getBody());
+
+        verify(authMappers).convertToDomain(userIdRequestDto);
+        verify(authService).extractUUID(userIdRequest);
+        verify(userMappers).convertFromDomain(user);
+    }
+
+    @Test
+    void shouldPropagateException_whenUserIDRequestFails() {
+        UserIdRequestDto userIdRequestDto = new UserIdRequestDto()
+            .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik");
+        UserIdRequest userIdRequest = UserIdRequest.builder()
+            .accessToken(userIdRequestDto.getAccessToken())
+            .build();
+        RuntimeException runtimeException = new RuntimeException("Service error");
+
+        doReturn(userIdRequest).when(authMappers).convertToDomain(userIdRequestDto);
+        doThrow(runtimeException).when(authService).extractUUID(userIdRequest);
+
+        Exception ex = assertThrows(RuntimeException.class, () -> authApiDelegateImpl.extractUUID(userIdRequestDto));
+        assertSame(runtimeException, ex);
+
+        verify(authMappers).convertToDomain(userIdRequestDto);
+        verify(authService).extractUUID(userIdRequest);
+        verify(userMappers, never()).convertFromDomain(any(User.class));
     }
 }

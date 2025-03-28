@@ -101,7 +101,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserIDRequestDto'
+              $ref: '#/components/schemas/UserIdRequestDto'
       responses:
         '200':
           description: UUID issued
@@ -136,6 +136,13 @@ paths:
         - users
       summary: Get a list of available users
       operationId: getUsers
+      parameters:
+        - name: access-token
+          in: query
+          description: The access token for the user authentication.
+          required: true
+          schema:
+            type: string
       security:
         - bearerAuth: [ ]
       responses:
@@ -197,6 +204,7 @@ components:
           format: uuid
         access_token:
           type: string
+          description: The access token for authentication.
         expires_in:
           type: integer
           format: int64
@@ -220,7 +228,7 @@ components:
           type: string
           format: uuid
 
-    UserIDRequestDto:
+    UserIdRequestDto:
       type: object
       required:
         - access_token

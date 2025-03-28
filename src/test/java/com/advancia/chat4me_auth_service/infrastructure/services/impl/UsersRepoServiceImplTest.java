@@ -1,5 +1,6 @@
 package com.advancia.chat4me_auth_service.infrastructure.services.impl;
 
+import com.advancia.chat4me_auth_service.domain.exceptions.UserNotFoundException;
 import com.advancia.chat4me_auth_service.domain.model.User;
 import com.advancia.chat4me_auth_service.infrastructure.mappers.UserEntityMappers;
 import com.advancia.chat4me_auth_service.infrastructure.model.UserEntity;
@@ -11,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -84,6 +86,48 @@ public class UsersRepoServiceImplTest {
         assertSame(runtimeException, ex);
 
         verify(usersRepository).getUsers();
+        verify(userEntityMappers, never()).convertFromInfrastructure(any(UserEntity.class));
+    }
+
+    @Test
+    void shouldReturnUser_whenUserExists() {
+        UUID userId = UUID.randomUUID();
+        UserEntity userEntity = UserEntity.builder()
+            .id(userId)
+            .name("testName")
+            .surname("testSurname")
+            .username("testUser")
+            .email("testEmail")
+            .password("testPassword")
+            .build();
+        User expectedUser = User.builder()
+            .id(userId)
+            .name("testName")
+            .surname("testSurname")
+            .username("testUser")
+            .email("testEmail")
+            .password("testPassword")
+            .build();
+
+        doReturn(Optional.of(userEntity)).when(usersRepository).findById(userId);
+        doReturn(expectedUser).when(userEntityMappers).convertFromInfrastructure(userEntity);
+
+        User userResult = usersRepoServiceImpl.getUser(userId);
+        assertEquals(expectedUser, userResult);
+
+        verify(usersRepository).findById(userId);
+        verify(userEntityMappers).convertFromInfrastructure(userEntity);
+    }
+
+    @Test
+    void shouldThrowException_whenUserDoesNotExist() {
+        UUID userId = UUID.randomUUID();
+
+        doReturn(Optional.empty()).when(usersRepository).findById(userId);
+
+        assertThrows(UserNotFoundException.class, () -> usersRepoServiceImpl.getUser(userId));
+
+        verify(usersRepository).findById(userId);
         verify(userEntityMappers, never()).convertFromInfrastructure(any(UserEntity.class));
     }
 }

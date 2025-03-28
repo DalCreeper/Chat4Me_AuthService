@@ -3,9 +3,11 @@ package com.advancia.chat4me_auth_service.application;
 import com.advancia.Chat4Me_Auth_Service.generated.application.api.AuthApiDelegate;
 import com.advancia.Chat4Me_Auth_Service.generated.application.model.*;
 import com.advancia.chat4me_auth_service.application.mappers.AuthMappers;
+import com.advancia.chat4me_auth_service.application.mappers.UserMappers;
 import com.advancia.chat4me_auth_service.domain.exceptions.ApiAuthExceptionHandler;
 import com.advancia.chat4me_auth_service.domain.model.AuthToken;
 import com.advancia.chat4me_auth_service.domain.model.ChallengeResponse;
+import com.advancia.chat4me_auth_service.domain.model.User;
 import com.advancia.chat4me_auth_service.domain.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import java.util.Optional;
 public class AuthApiDelegateImpl implements AuthApiDelegate {
     private final AuthService authService;
     private final AuthMappers authMappers;
+    private final UserMappers userMappers;
 
     @Override
     public ResponseEntity<ChallengeResponseDto> startLogin(LoginRequestDto loginRequestDto) {
@@ -44,5 +47,12 @@ public class AuthApiDelegateImpl implements AuthApiDelegate {
         AuthToken authToken = authService.refreshToken(authMappers.convertToDomain(refreshTokenRequestDto));
         AuthTokenDto newAuthTokenDto = authMappers.convertFromDomain(authToken);
         return ResponseEntity.ok(newAuthTokenDto);
+    }
+
+    @Override
+    public ResponseEntity<UserDto> extractUUID(UserIdRequestDto userIdRequestDto) {
+        User user = authService.extractUUID(authMappers.convertToDomain(userIdRequestDto));
+        UserDto userDto = userMappers.convertFromDomain(user);
+        return ResponseEntity.ok(userDto);
     }
 }

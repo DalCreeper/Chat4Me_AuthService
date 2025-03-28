@@ -4,6 +4,7 @@ import com.advancia.chat4me_auth_service.domain.exceptions.InvalidOTPException;
 import com.advancia.chat4me_auth_service.domain.exceptions.OTPExpiredException;
 import com.advancia.chat4me_auth_service.domain.model.*;
 import com.advancia.chat4me_auth_service.domain.repository.AuthRepoService;
+import com.advancia.chat4me_auth_service.domain.repository.UsersRepoService;
 import com.advancia.chat4me_auth_service.domain.services.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final AuthRepoService authRepoService;
+    private final UsersRepoService usersRepoService;
     private final OTPProvider otpProvider;
     private final UUIDProvider uuidProvider;
     private final JWTProvider jwtProvider;
@@ -70,6 +72,13 @@ public class AuthServiceImpl implements AuthService {
         authRepoService.saveAuthToken(newAuthToken);
         newAuthToken.setAccessToken(newJwt);
         return newAuthToken;
+    }
+
+    @Override
+    public User extractUUID(UserIdRequest userIDRequest) {
+        jwtProvider.validateJwt(userIDRequest.getAccessToken());
+        UUID userId = jwtProvider.getUserIdFromJwt(userIDRequest.getAccessToken());
+        return usersRepoService.getUser(userId);
     }
 
     private OTPVerificationRequest buildOTPVerificationRequest(User user) {
