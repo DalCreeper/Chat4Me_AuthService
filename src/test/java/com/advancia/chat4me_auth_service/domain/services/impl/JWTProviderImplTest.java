@@ -1,6 +1,6 @@
 package com.advancia.chat4me_auth_service.domain.services.impl;
 
-import com.advancia.chat4me_auth_service.domain.exceptions.JWTNotValidatedException;
+import com.advancia.chat4me_auth_service.application.exceptions.JWTNotValidatedException;
 import com.advancia.chat4me_auth_service.domain.services.SystemDateTimeProvider;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;

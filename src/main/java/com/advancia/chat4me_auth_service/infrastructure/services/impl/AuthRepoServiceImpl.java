@@ -1,6 +1,8 @@
 package com.advancia.chat4me_auth_service.infrastructure.services.impl;
 
-import com.advancia.chat4me_auth_service.domain.exceptions.*;
+import com.advancia.chat4me_auth_service.application.exceptions.ChallengeNotFoundException;
+import com.advancia.chat4me_auth_service.application.exceptions.InvalidCredentialException;
+import com.advancia.chat4me_auth_service.application.exceptions.RefreshTokenNotFoundException;
 import com.advancia.chat4me_auth_service.domain.model.*;
 import com.advancia.chat4me_auth_service.domain.repository.AuthRepoService;
 import com.advancia.chat4me_auth_service.domain.services.PasswordManager;

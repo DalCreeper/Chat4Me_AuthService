@@ -4,7 +4,6 @@ import com.advancia.Chat4Me_Auth_Service.generated.application.api.AuthApiDelega
 import com.advancia.Chat4Me_Auth_Service.generated.application.model.*;
 import com.advancia.chat4me_auth_service.application.mappers.AuthMappers;
 import com.advancia.chat4me_auth_service.application.mappers.UserMappers;
-import com.advancia.chat4me_auth_service.domain.exceptions.ApiAuthExceptionHandler;
 import com.advancia.chat4me_auth_service.domain.model.AuthToken;
 import com.advancia.chat4me_auth_service.domain.model.ChallengeResponse;
 import com.advancia.chat4me_auth_service.domain.model.User;
@@ -12,8 +11,6 @@ import com.advancia.chat4me_auth_service.domain.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

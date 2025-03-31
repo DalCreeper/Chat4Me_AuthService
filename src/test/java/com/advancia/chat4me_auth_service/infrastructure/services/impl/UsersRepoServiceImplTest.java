@@ -1,6 +1,6 @@
 package com.advancia.chat4me_auth_service.infrastructure.services.impl;
 
-import com.advancia.chat4me_auth_service.domain.exceptions.UserNotFoundException;
+import com.advancia.chat4me_auth_service.application.exceptions.UserNotFoundException;
 import com.advancia.chat4me_auth_service.domain.model.User;
 import com.advancia.chat4me_auth_service.infrastructure.mappers.UserEntityMappers;
 import com.advancia.chat4me_auth_service.infrastructure.model.UserEntity;

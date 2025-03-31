@@ -1,4 +1,4 @@
-package com.advancia.chat4me_auth_service.domain.exceptions;
+package com.advancia.chat4me_auth_service.application.exceptions;
 
 public class RefreshTokenNotFoundException extends AuthServiceException {
     public RefreshTokenNotFoundException() {

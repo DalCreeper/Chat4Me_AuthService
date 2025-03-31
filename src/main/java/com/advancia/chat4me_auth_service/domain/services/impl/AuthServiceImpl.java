@@ -1,7 +1,7 @@
 package com.advancia.chat4me_auth_service.domain.services.impl;
 
-import com.advancia.chat4me_auth_service.domain.exceptions.InvalidOTPException;
-import com.advancia.chat4me_auth_service.domain.exceptions.OTPExpiredException;
+import com.advancia.chat4me_auth_service.application.exceptions.InvalidOTPException;
+import com.advancia.chat4me_auth_service.application.exceptions.OTPExpiredException;
 import com.advancia.chat4me_auth_service.domain.model.*;
 import com.advancia.chat4me_auth_service.domain.repository.AuthRepoService;
 import com.advancia.chat4me_auth_service.domain.repository.UsersRepoService;
