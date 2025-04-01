@@ -146,7 +146,7 @@ public class AuthApiDelegateImplTest {
 
         verify(authMappers).convertToDomain(otpVerificationRequestDto);
         verify(authService).otpVerification(otpVerificationRequest);
-        verify(authMappers, never()).convertFromDomain(any(ChallengeResponse.class));
+        verify(authMappers, never()).convertFromDomain(any(AuthToken.class));
     }
 
     @Test
@@ -192,65 +192,6 @@ public class AuthApiDelegateImplTest {
 
         verify(authMappers).convertToDomain(tokenValidationRequestDto);
         verify(authService).tokenValidation(tokenValidationRequest);
-    }
-
-    @Test
-    void shouldReturnARefreshAuthTokenDtoAndPrintToken_whenIsAllOk() {
-        RefreshTokenRequestDto refreshTokenRequestDto = new RefreshTokenRequestDto()
-            .refreshTokenId(UUID.randomUUID())
-            .userId(UUID.randomUUID());
-        RefreshTokenRequest refreshTokenRequest = RefreshTokenRequest.builder()
-            .refreshTokenId(refreshTokenRequestDto.getRefreshTokenId())
-            .userId(refreshTokenRequestDto.getUserId())
-            .build();
-        AuthToken authToken = AuthToken.builder()
-            .tokenId(UUID.randomUUID())
-            .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik")
-            .expiresIn(86400000L) // 1 day
-            .message("Auth token generated")
-            .userId(refreshTokenRequest.getUserId())
-            .build();
-        AuthTokenDto authTokenDto = new AuthTokenDto()
-            .tokenId(authToken.getTokenId())
-            .accessToken(authToken.getAccessToken())
-            .userId(authToken.getUserId())
-            .expiresIn(authToken.getExpiresIn())
-            .message(authToken.getMessage())
-            .userId(authToken.getUserId());
-
-        doReturn(refreshTokenRequest).when(authMappers).convertToDomain(refreshTokenRequestDto);
-        doReturn(authToken).when(authService).refreshToken(refreshTokenRequest);
-        doReturn(authTokenDto).when(authMappers).convertFromDomain(authToken);
-
-        ResponseEntity<AuthTokenDto> response = authApiDelegateImpl.refreshToken(refreshTokenRequestDto);
-        assertEquals(200, response.getStatusCode().value());
-        assertEquals(authTokenDto, response.getBody());
-
-        verify(authMappers).convertToDomain(refreshTokenRequestDto);
-        verify(authService).refreshToken(refreshTokenRequest);
-        verify(authMappers).convertFromDomain(authToken);
-    }
-
-    @Test
-    void shouldPropagateException_whenRefreshAuthTokenFails() {
-        RefreshTokenRequestDto refreshTokenRequestDto = new RefreshTokenRequestDto()
-            .refreshTokenId(UUID.randomUUID())
-            .userId(UUID.randomUUID());
-        RefreshTokenRequest refreshTokenRequest = RefreshTokenRequest.builder()
-            .refreshTokenId(refreshTokenRequestDto.getRefreshTokenId())
-            .userId(refreshTokenRequestDto.getUserId())
-            .build();
-        RuntimeException runtimeException = new RuntimeException("Service error");
-
-        doReturn(refreshTokenRequest).when(authMappers).convertToDomain(refreshTokenRequestDto);
-        doThrow(runtimeException).when(authService).refreshToken(refreshTokenRequest);
-
-        Exception ex = assertThrows(RuntimeException.class, () -> authApiDelegateImpl.refreshToken(refreshTokenRequestDto));
-        assertSame(runtimeException, ex);
-
-        verify(authMappers).convertToDomain(refreshTokenRequestDto);
-        verify(authService).refreshToken(refreshTokenRequest);
-        verify(authMappers, never()).convertFromDomain(any(AuthToken.class));
     }
 
     @Test
@@ -309,5 +250,64 @@ public class AuthApiDelegateImplTest {
         verify(authMappers).convertToDomain(userIdRequestDto);
         verify(authService).extractUUID(userIdRequest);
         verify(userMappers, never()).convertFromDomain(any(User.class));
+    }
+
+    @Test
+    void shouldReturnARefreshAuthTokenDtoAndPrintToken_whenIsAllOk() {
+        RefreshTokenRequestDto refreshTokenRequestDto = new RefreshTokenRequestDto()
+            .refreshTokenId(UUID.randomUUID())
+            .userId(UUID.randomUUID());
+        RefreshTokenRequest refreshTokenRequest = RefreshTokenRequest.builder()
+            .refreshTokenId(refreshTokenRequestDto.getRefreshTokenId())
+            .userId(refreshTokenRequestDto.getUserId())
+            .build();
+        AuthToken authToken = AuthToken.builder()
+            .tokenId(UUID.randomUUID())
+            .accessToken("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3ZjExM2JiMi0zOGViLTQ3ZTctODRhMi1jZjI3MDMwMDRiODYiLCJpYXQiOjE3NDExMDczMDAsImV4cCI6MTc0MTE5MzcwMH0.lVCPs_piZa-se2ABiy6xjfor5oAvKSvv1T_n5YYKnik")
+            .expiresIn(86400000L) // 1 day
+            .message("Auth token re-generated")
+            .userId(refreshTokenRequest.getUserId())
+            .build();
+        AuthTokenDto authTokenDto = new AuthTokenDto()
+            .tokenId(authToken.getTokenId())
+            .accessToken(authToken.getAccessToken())
+            .userId(authToken.getUserId())
+            .expiresIn(authToken.getExpiresIn())
+            .message(authToken.getMessage())
+            .userId(authToken.getUserId());
+
+        doReturn(refreshTokenRequest).when(authMappers).convertToDomain(refreshTokenRequestDto);
+        doReturn(authToken).when(authService).refreshToken(refreshTokenRequest);
+        doReturn(authTokenDto).when(authMappers).convertFromDomain(authToken);
+
+        ResponseEntity<AuthTokenDto> response = authApiDelegateImpl.refreshToken(refreshTokenRequestDto);
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(authTokenDto, response.getBody());
+
+        verify(authMappers).convertToDomain(refreshTokenRequestDto);
+        verify(authService).refreshToken(refreshTokenRequest);
+        verify(authMappers).convertFromDomain(authToken);
+    }
+
+    @Test
+    void shouldPropagateException_whenRefreshAuthTokenFails() {
+        RefreshTokenRequestDto refreshTokenRequestDto = new RefreshTokenRequestDto()
+            .refreshTokenId(UUID.randomUUID())
+            .userId(UUID.randomUUID());
+        RefreshTokenRequest refreshTokenRequest = RefreshTokenRequest.builder()
+            .refreshTokenId(refreshTokenRequestDto.getRefreshTokenId())
+            .userId(refreshTokenRequestDto.getUserId())
+            .build();
+        RuntimeException runtimeException = new RuntimeException("Service error");
+
+        doReturn(refreshTokenRequest).when(authMappers).convertToDomain(refreshTokenRequestDto);
+        doThrow(runtimeException).when(authService).refreshToken(refreshTokenRequest);
+
+        Exception ex = assertThrows(RuntimeException.class, () -> authApiDelegateImpl.refreshToken(refreshTokenRequestDto));
+        assertSame(runtimeException, ex);
+
+        verify(authMappers).convertToDomain(refreshTokenRequestDto);
+        verify(authService).refreshToken(refreshTokenRequest);
+        verify(authMappers, never()).convertFromDomain(any(AuthToken.class));
     }
 }
