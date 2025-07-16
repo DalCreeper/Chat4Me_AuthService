@@ -1,6 +1,6 @@
 package com.advancia.chat4me_auth_service.application.mappers;
 
-import com.advancia.Chat4Me_Auth_Service.generated.application.model.*;
+import com.advancia.chat4me_auth_service.generated.application.model.*;
 import com.advancia.chat4me_auth_service.domain.model.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
